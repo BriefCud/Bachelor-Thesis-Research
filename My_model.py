@@ -100,8 +100,11 @@ for i in range(1,10):
   train_ld, train_ad, test_ld, test_ad, ep = QuantumModel(SEED, TRAIN_SIZE, TEST_SIZE, N_QUBITS, i, LR, N_EPOCHS)
   train_layers_data[i] = train_ad[-1]
   test_layers_data[i] = test_ad[-1]
+plt.figure(num=1, figsize=(8, 6))
+plt.title('Accuracy vs Layers', size=14)
+plt.xlabel("# of layers", sie=14)
+plt.ylabel('Accuracy', size=14)
 plt.plot(num_layer,train_layers_data,'r')
 plt.plot(num_layer,test_layers_data,'b')
-plt.xlabel("# of layers")
-plt.ylabel("Accuracy")
+plt.legend(loc='lower right')
 plt.show()
