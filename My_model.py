@@ -96,7 +96,7 @@ N_EPOCHS = 1000
 train_layers_data = np.zeros(10)
 test_layers_data = np.zeros(10)
 num_layer = np.linspace(1,10, num =10)
-for i in range(1,10):
+for i in range(10):
   train_ld, train_ad, test_ld, test_ad, ep = QuantumModel(SEED, TRAIN_SIZE, TEST_SIZE, N_QUBITS, i, LR, N_EPOCHS)
   train_layers_data[i] = train_ad[-1]
   test_layers_data[i] = test_ad[-1]
