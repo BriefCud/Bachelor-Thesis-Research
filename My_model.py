@@ -71,7 +71,7 @@ def QuantumModel(SEED, TRAIN_SIZE, TEST_SIZE, N_QUBITS, N_LAYERS, LR, N_EPOCHS):
   @jax.jit
   def test_step(stepid, opt_state):
     weights = get_params(opt_state)
-    loss_value, grads = jax.value_and_grad(loss_train)(weights)
+    loss_value, grads = jax.value_and_grad(loss_test)(weights)
     acc_value = acc_train(weights)
     return loss_value, acc_value
 
