@@ -6,18 +6,13 @@ SCALING_FACTOR = np.pi
 
 def load_dataset(train_size,test_size,seed=1):
     assert (train_size % 2) == 0 and (test_size % 2) == 0 # Must be even to have a balanced dataset
-
-    #features_cols = ['mu_Q', 'mu_pTrel', 'mu_dist', 'Jet_QTOT'] # "Muon Dataset" features
+    
     features_cols = ['mu_Q', 'mu_pTrel', 'mu_dist', 'k_Q', 'k_pTrel','k_dist','pi_Q','pi_pTrel','pi_dist','e_Q','e_pTrel','e_dist','p_Q','p_pTrel','p_dist','Jet_QTOT']
     target_col = 'Jet_LABEL' # Monte Carlo truth 0 -> b     1 -> b-bar  
 
     # Jets are split in two CSVs for training and testing 
     train_csv = pd.read_csv(DATA_PATH + 'trainData.csv')
     test_csv = pd.read_csv(DATA_PATH + 'testData.csv')
-
-    # Selecting only the jets with a muon when usinng the Muon dataset in feature_cols
-    # train_csv = train_csv[train_csv['mu_Q'] != 0]
-    # test_csv = test_csv[test_csv['mu_Q'] != 0]
 
     # Features are normalized to the [0,1] range
     scaler = MinMaxScaler()
