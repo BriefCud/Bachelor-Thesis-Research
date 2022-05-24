@@ -59,6 +59,7 @@ def QuantumModel(SEED, TRAIN_SIZE, TEST_SIZE, N_QUBITS, N_LAYERS, LR, N_EPOCHS):
     #if (i+1) % 100 == 0:
         #print(f"{i+1}\t{loss_value:.3f}\t{acc_value*100:.2f}%")
   final_state = opt_state
+  
   #------- Testing -------#
   @jax.jit
   def test_step(stepid, opt_state):
@@ -78,9 +79,9 @@ def QuantumModel(SEED, TRAIN_SIZE, TEST_SIZE, N_QUBITS, N_LAYERS, LR, N_EPOCHS):
   return train_loss_data, train_acc_data, test_loss_data, test_acc_data, ep
 
 SEED=0      
-TRAIN_SIZE = 1000 
-TEST_SIZE = 500 
-N_QUBITS = 4   
+TRAIN_SIZE = 60000 
+TEST_SIZE = 50000
+N_QUBITS = 16   
 N_LAYERS = 2
 LR=1e-3 
 N_EPOCHS = 1000
