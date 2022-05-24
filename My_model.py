@@ -3,14 +3,15 @@ import numpy as np
 from sklearn.preprocessing import MinMaxScaler
 import pennylane as qml
 import matplotlib.pyplot as plt
-from dataset import load_dataset
+from dataset16 import load_dataset as ld_ful
+from dataset_muon import load_dataset as ld_muon
 from functools import partial
 import jax
 from jax.example_libraries.optimizers import adam
 
 def QuantumModel(SEED, TRAIN_SIZE, TEST_SIZE, N_QUBITS, N_LAYERS, LR, N_EPOCHS):
   device = qml.device("default.qubit.jax", wires=N_QUBITS,prng_key = jax.random.PRNGKey(SEED))
-  train_features,train_target,test_features,test_target = load_dataset(TRAIN_SIZE,TEST_SIZE,SEED)
+  train_features,train_target,test_features,test_target = ld_full(TRAIN_SIZE,TEST_SIZE,SEED)
   
   @partial(jax.vmap,in_axes=[0,None])
   @qml.qnode(device,interface='jax')
