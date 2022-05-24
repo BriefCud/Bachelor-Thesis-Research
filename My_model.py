@@ -99,4 +99,5 @@ plt.ylabel('Accuracy', size=14)
 plt.plot(num_layer,train_layers_data,'r',label='Training')
 plt.plot(num_layer,test_layers_data,'b', label='Testing')
 plt.legend(loc='lower right')
-plt.savefig('training'+TRAIN_SIZE+'_testing'TEST_SIZE+'.png')
+file_name = 'training'+TRAIN_SIZE+'_testing'TEST_SIZE+'.png'
+plt.savefig(file_name)
