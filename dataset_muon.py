@@ -7,7 +7,7 @@ SCALING_FACTOR = np.pi
 def load_dataset(train_size,test_size,seed=1):
     assert (train_size % 2) == 0 and (test_size % 2) == 0 # Must be even to have a balanced dataset
 
-    #features_cols = ['mu_Q', 'mu_pTrel', 'mu_dist', 'Jet_QTOT'] # "Muon Dataset" features
+    features_cols = ['mu_Q', 'mu_pTrel', 'mu_dist', 'Jet_QTOT'] # "Muon Dataset" features
     target_col = 'Jet_LABEL' # Monte Carlo truth 0 -> b     1 -> b-bar  
 
     # Jets are split in two CSVs for training and testing 
