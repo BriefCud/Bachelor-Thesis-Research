@@ -13,8 +13,6 @@ from jax.example_libraries.optimizers import adam
 def Split(data, n):
     dataframes = []
     chunks = len(data) // n
-    start = 0
-    end = index_to_split
     for i in range(chunks):
         dataframes.append(data[i*n:(i+1)*n])
     return dataframes, chunks
