@@ -15,7 +15,7 @@ def Split(data, n):
     chunks = len(data) // n
     start = 0
     end = index_to_split
-    for i in range(chunks)
+    for i in range(chunks):
         dataframes.append(data[i*n:(i+1)*n])
     return dataframes, chunks
 
@@ -70,7 +70,7 @@ def QuantumModel(SEED, TRAIN_SIZE, TEST_SIZE, N_QUBITS, N_LAYERS, LR, N_EPOCHS):
 
   print("Epoch\tLoss\tAccuracy")
   for i in range(N_EPOCHS):
-    for j in range(chunks)
+    for j in range(chunks):
       loss_temp = []
       acc_temp = []
       loss_value,acc_value, opt_state = train_step(i,opt_state,train_dataframe[j],train_target_dataframe[j])
@@ -96,7 +96,7 @@ def QuantumModel(SEED, TRAIN_SIZE, TEST_SIZE, N_QUBITS, N_LAYERS, LR, N_EPOCHS):
   test_acc_data = np.zeros(N_EPOCHS)
 
   for i in range(N_EPOCHS):
-    for j in range(chunks)
+    for j in range(chunks):
       loss_temp = []
       acc_temp = []
       loss_value,acc_value = test_step(i,final_state,test_dataframe[j], test_target_dataframe[j])
