@@ -9,6 +9,16 @@ from functools import partial
 import jax
 from jax.example_libraries.optimizers import adam
 
+# Function that splits a dataset for batching where n is the size of data chunk
+def Split(data, n):
+    dataframes = []
+    chunks = len(data) // n
+    start = 0
+    end = index_to_split
+    for split in range(chunks)
+        dataframes.append(data[i*n:(i+1)*n])
+    return dataframes, chunks
+
 def QuantumModel(SEED, TRAIN_SIZE, TEST_SIZE, N_QUBITS, N_LAYERS, LR, N_EPOCHS):
   device = qml.device("default.qubit.jax", wires=N_QUBITS,prng_key = jax.random.PRNGKey(SEED))
   train_features,train_target,test_features,test_target = ld_full(TRAIN_SIZE,TEST_SIZE,SEED)
@@ -27,12 +37,18 @@ def QuantumModel(SEED, TRAIN_SIZE, TEST_SIZE, N_QUBITS, N_LAYERS, LR, N_EPOCHS):
   def acc_fn(w,x,y):
     pred = circuit(x,w)
     return jax.numpy.mean(jax.numpy.sign(pred) == y)
+  
+  # Split the training dataet 
+  train_dataframe, chunks = Split(train_features, 1000)
+  train_target_dataframe = Split(train_target, 1000)
+  test_dataframe = Split(test_features, 1000)
+  test_target_dataframe = Split(test_target, 1000)
 
-  loss_train = partial(loss_fn,x=train_features,y=train_target.to_numpy())
-  acc_train = partial(acc_fn,x=train_features,y=train_target.to_numpy())
+  #loss_train = partial(loss_fn,x=train_features,y=train_target.to_numpy())
+  #acc_train = partial(acc_fn,x=train_features,y=train_target.to_numpy())
 
-  loss_test = partial(loss_fn,x=test_features,y=test_target.to_numpy())
-  acc_test = partial(acc_fn,x=test_features,y=test_target.to_numpy())
+  #loss_test = partial(loss_fn,x=test_features,y=test_target.to_numpy())
+  #acc_test = partial(acc_fn,x=test_features,y=test_target.to_numpy())
 
   weights = jax.random.uniform(jax.random.PRNGKey(SEED), (N_LAYERS, N_QUBITS, 3))*jax.numpy.pi
 
@@ -41,10 +57,10 @@ def QuantumModel(SEED, TRAIN_SIZE, TEST_SIZE, N_QUBITS, N_LAYERS, LR, N_EPOCHS):
 
   #----- Training ------#
   @jax.jit
-  def train_step(stepid, opt_state):
+  def train_step(stepid, opt_state,x,y):
     current_w = get_params(opt_state)
-    loss_value, grads = jax.value_and_grad(loss_train)(current_w)
-    acc_value = acc_train(current_w)
+    loss_value, grads = jax.value_and_grad(loss_fn, argnums=0)(current_w,x,y)
+    acc_value = acc_fn(current_w,x,y)
     opt_state = opt_update(stepid, grads, opt_state)
     return loss_value,acc_value, opt_state
 
@@ -54,18 +70,25 @@ def QuantumModel(SEED, TRAIN_SIZE, TEST_SIZE, N_QUBITS, N_LAYERS, LR, N_EPOCHS):
 
   print("Epoch\tLoss\tAccuracy")
   for i in range(N_EPOCHS):
-    loss_value,acc_value, opt_state = train_step(i,opt_state)
-    train_loss_data[i] = loss_value
-    train_acc_data[i] = acc_value
+    for j in range(chunks)
+      loss_temp = []
+      acc_temp = []
+      loss_value,acc_value, opt_state = train_step(i,opt_state,train_dataframe[j],train_target_dataframe[j])
+      loss_temp.append(loss_value)
+      acc_temp.append(acc_value)
+    loss_avg = np.average(loss_temp)
+    acc_avg = np.average(acc_temp)
+    train_loss_data[i] = loss_avg
+    train_acc_data[i] = acc_avg
     #if (i+1) % 100 == 0:
         #print(f"{i+1}\t{loss_value:.3f}\t{acc_value*100:.2f}%")
   final_state = opt_state
   
   #------- Testing -------#
   @jax.jit
-  def test_step(stepid, opt_state):
+  def test_step(stepid, opt_state, x, y):
     weights = get_params(opt_state)
-    loss_value, grads = jax.value_and_grad(loss_test)(weights)
+    loss_value, grads = jax.value_and_grad(loss_fn, argnums=0)(weights, x, y)
     acc_value = acc_train(weights)
     return loss_value, acc_value
 
@@ -73,10 +96,16 @@ def QuantumModel(SEED, TRAIN_SIZE, TEST_SIZE, N_QUBITS, N_LAYERS, LR, N_EPOCHS):
   test_acc_data = np.zeros(N_EPOCHS)
 
   for i in range(N_EPOCHS):
-    loss_value,acc_value = test_step(i,final_state)
-    test_loss_data[i] = loss_value
-    test_acc_data[i] = acc_value
-
+    for j in range(chunks)
+      loss_temp = []
+      acc_temp = []
+      loss_value,acc_value = test_step(i,final_state,test_dataframe[j], test_target_dataframe[j])
+      loss_temp.append(loss_value)
+      acc_temp.append(acc_value)
+    loss_avg = np.average(loss_temp)
+    acc_avg = np.average(acc_temp)
+    test_loss_data[i] = loss_avg
+    test_acc_data[i] = acc_avg
   return train_loss_data, train_acc_data, test_loss_data, test_acc_data, ep
 
 SEED=0      
