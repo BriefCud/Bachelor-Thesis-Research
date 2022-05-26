@@ -12,7 +12,7 @@ from jax.example_libraries.optimizers import adam
 # Function that splits a dataset for batching where n is the size of data chunk
 def Split(data, rows):
     depth = len(data) // rows
-    dataframes = np.vsplit(data, depth)
+    dataframes = np.split(data, depth)
     return dataframes, depth
 
 def QuantumModel(SEED, TRAIN_SIZE, TEST_SIZE, N_QUBITS, N_LAYERS, LR, N_EPOCHS):
@@ -22,7 +22,6 @@ def QuantumModel(SEED, TRAIN_SIZE, TEST_SIZE, N_QUBITS, N_LAYERS, LR, N_EPOCHS):
   train_target = np.array(train_target)
   test_features = np.array(test_features)
   test_target = np.array(test_target)
-
 
   @partial(jax.vmap,in_axes=[0,None])
   @qml.qnode(device,interface='jax')
@@ -41,9 +40,9 @@ def QuantumModel(SEED, TRAIN_SIZE, TEST_SIZE, N_QUBITS, N_LAYERS, LR, N_EPOCHS):
   
   # Split the training dataet 
   train_dataframe, chunks = Split(train_features, 1000)
-  train_target_dataframe, chunks_b = Split(train_target, 1000)
-  test_dataframe, chunks_c = Split(test_features, 1000)
-  test_target_dataframe, chunks_d = Split(test_target, 1000)
+  train_target_dataframe, chunks = Split(train_target, 1000)
+  test_dataframe, chunks = Split(test_features, 1000)
+  test_target_dataframe, chunks = Split(test_target, 1000)
 
   #loss_train = partial(loss_fn,x=train_features,y=train_target.to_numpy())
   #acc_train = partial(acc_fn,x=train_features,y=train_target.to_numpy())
@@ -72,8 +71,8 @@ def QuantumModel(SEED, TRAIN_SIZE, TEST_SIZE, N_QUBITS, N_LAYERS, LR, N_EPOCHS):
   print("Epoch\tLoss\tAccuracy")
   for i in range(N_EPOCHS):
     for j in range(chunks):
-      loss_temp = []
-      acc_temp = []
+      loss_temp = np.zeros(chunks)
+      acc_temp = np.zeros(chunks)
       loss_value,acc_value, opt_state = train_step(i,opt_state,train_dataframe[j],train_target_dataframe[j])
       loss_temp[j] = loss_value
       acc_temp[j] = acc_value
@@ -98,8 +97,8 @@ def QuantumModel(SEED, TRAIN_SIZE, TEST_SIZE, N_QUBITS, N_LAYERS, LR, N_EPOCHS):
 
   for i in range(N_EPOCHS):
     for j in range(chunks):
-      loss_temp = np.array()
-      acc_temp = []
+      loss_temp = np.zeros(chunks)
+      acc_temp = np.zeros(chunks)
       loss_value,acc_value = test_step(i,final_state,test_dataframe[j], test_target_dataframe[j])
       loss_temp[j] = loss_value
       acc_temp[j] = acc_value
