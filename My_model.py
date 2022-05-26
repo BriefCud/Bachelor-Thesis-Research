@@ -10,9 +10,10 @@ import jax
 from jax.example_libraries.optimizers import adam
 
 # Function that splits a dataset for batching where n is the size of data chunk
-def Split(data, n):
-    dataframes = [][][]
-    chunks = len(data) // n                                                                      
+def Split(data, rows):
+    depth = len(data) // rows
+    cols = len(data[0])
+    dataframes = numpy.array((depth,rows,cols))
     for i in range(chunks):
         dataframes[i][i*n:(i+1)*n,:] = data[i*n:(i+1)*n,:]
     return dataframes, chunks
