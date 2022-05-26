@@ -89,7 +89,7 @@ def QuantumModel(SEED, TRAIN_SIZE, TEST_SIZE, N_QUBITS, N_LAYERS, LR, N_EPOCHS):
   def test_step(stepid, opt_state, x, y):
     weights = get_params(opt_state)
     loss_value, grads = jax.value_and_grad(loss_fn, argnums=0)(weights, x, y)
-    acc_value = acc_train(weights)
+    acc_value = acc_fn(weights,x,y)
     return loss_value, acc_value
 
   test_loss_data = np.zeros(N_EPOCHS)
