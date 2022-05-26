@@ -14,7 +14,7 @@ def Split(data, n):
     dataframes = []
     chunks = len(data) // n
     for i in range(chunks):
-        dataframes[i] = data[i*n:(i+1)*n,:])
+        dataframes[i] = data[i*n:(i+1)*n,:]
     return dataframes, chunks
 
 def QuantumModel(SEED, TRAIN_SIZE, TEST_SIZE, N_QUBITS, N_LAYERS, LR, N_EPOCHS):
