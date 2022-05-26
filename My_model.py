@@ -11,10 +11,10 @@ from jax.example_libraries.optimizers import adam
 
 # Function that splits a dataset for batching where n is the size of data chunk
 def Split(data, n):
-    dataframes = []
-    chunks = len(data) // n
+    dataframes = [][][]
+    chunks = len(data) // n                                                                      
     for i in range(chunks):
-        dataframes[i] = data[i*n:(i+1)*n,:]
+        dataframes[i][i*n:(i+1)*n,:] = data[i*n:(i+1)*n,:]
     return dataframes, chunks
 
 def QuantumModel(SEED, TRAIN_SIZE, TEST_SIZE, N_QUBITS, N_LAYERS, LR, N_EPOCHS):
@@ -95,7 +95,7 @@ def QuantumModel(SEED, TRAIN_SIZE, TEST_SIZE, N_QUBITS, N_LAYERS, LR, N_EPOCHS):
 
   for i in range(N_EPOCHS):
     for j in range(chunks):
-      loss_temp = []
+      loss_temp = np.array()
       acc_temp = []
       loss_value,acc_value = test_step(i,final_state,test_dataframe[j], test_target_dataframe[j])
       loss_temp[j] = loss_value
