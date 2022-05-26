@@ -12,11 +12,15 @@ from jax.example_libraries.optimizers import adam
 # Function that splits a dataset for batching where n is the size of data chunk
 def Split(data, rows):
     depth = len(data) // rows
-    dataframes = np.vsplit((data, depth))
+    dataframes = np.vsplit(data, depth)
     return dataframes, depth
 
 def QuantumModel(SEED, TRAIN_SIZE, TEST_SIZE, N_QUBITS, N_LAYERS, LR, N_EPOCHS):
   device = qml.device("default.qubit.jax", wires=N_QUBITS,prng_key = jax.random.PRNGKey(SEED))
+  train_features = np.zeros(N_QUBITS,TRAIN_SIZE)
+  train_target = np.zeros(TRAIN_SIZE)
+  test_features = np.array(N_QUBITS,TEST_SIZE)
+  test_target = np.array(TEST_SIZE)
   train_features,train_target,test_features,test_target = ld_full(TRAIN_SIZE,TEST_SIZE,SEED)
   
   @partial(jax.vmap,in_axes=[0,None])
