@@ -14,7 +14,7 @@ def Split(data, n):
     dataframes = []
     chunks = len(data) // n
     for i in range(chunks):
-        dataframes.append(data[i*n:(i+1)*n])
+        dataframes[i] = data[i*n:(i+1)*n,:])
     return dataframes, chunks
 
 def QuantumModel(SEED, TRAIN_SIZE, TEST_SIZE, N_QUBITS, N_LAYERS, LR, N_EPOCHS):
@@ -72,8 +72,8 @@ def QuantumModel(SEED, TRAIN_SIZE, TEST_SIZE, N_QUBITS, N_LAYERS, LR, N_EPOCHS):
       loss_temp = []
       acc_temp = []
       loss_value,acc_value, opt_state = train_step(i,opt_state,train_dataframe[j],train_target_dataframe[j])
-      loss_temp.append(loss_value)
-      acc_temp.append(acc_value)
+      loss_temp[j] = loss_value
+      acc_temp[j] = acc_value
     loss_avg = np.average(loss_temp)
     acc_avg = np.average(acc_temp)
     train_loss_data[i] = loss_avg
@@ -98,8 +98,8 @@ def QuantumModel(SEED, TRAIN_SIZE, TEST_SIZE, N_QUBITS, N_LAYERS, LR, N_EPOCHS):
       loss_temp = []
       acc_temp = []
       loss_value,acc_value = test_step(i,final_state,test_dataframe[j], test_target_dataframe[j])
-      loss_temp.append(loss_value)
-      acc_temp.append(acc_value)
+      loss_temp[j] = loss_value
+      acc_temp[j] = acc_value
     loss_avg = np.average(loss_temp)
     acc_avg = np.average(acc_temp)
     test_loss_data[i] = loss_avg
