@@ -95,19 +95,17 @@ def QuantumModel(SEED, TRAIN_SIZE, TEST_SIZE, N_QUBITS, N_LAYERS, LR, N_EPOCHS):
   test_loss_data = np.zeros(N_EPOCHS)
   test_acc_data = np.zeros(N_EPOCHS)
 
-  for i in range(N_EPOCHS):
-    for j in range(chunks):
-      loss_temp = np.zeros(chunks)
-      acc_temp = np.zeros(chunks)
-      loss_value,acc_value = test_step(i,final_state,test_dataframe[j], test_target_dataframe[j])
-      loss_temp[j] = loss_value
-      acc_temp[j] = acc_value
-    loss_avg = np.average(loss_temp)
-    acc_avg = np.average(acc_temp)
-    test_loss_data[i] = loss_avg
-    test_acc_data[i] = acc_avg
-  if (i+1) % 100 == 0:
-    print(f"{i+1}\t{loss_value:.3f}\t{acc_value*100:.2f}%")
+  for j in range(chunks):
+    loss_temp = np.zeros(chunks)
+    acc_temp = np.zeros(chunks)
+    loss_value,acc_value = test_step(i,final_state,test_dataframe[j], test_target_dataframe[j])
+    loss_temp[j] = loss_value
+    acc_temp[j] = acc_value
+  loss_avg = np.average(loss_temp)
+  acc_avg = np.average(acc_temp)
+  test_loss_data[i] = loss_avg
+  test_acc_data[i] = acc_avg
+  print(f"\t{loss_value:.3f}\t{acc_value*100:.2f}%")
   return train_loss_data, train_acc_data, test_loss_data, test_acc_data, ep
 
 SEED=0      
