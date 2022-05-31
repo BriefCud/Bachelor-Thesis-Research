@@ -113,13 +113,13 @@ def my_model(SEED, TRAIN_SIZE, TEST_SIZE, N_QUBITS, N_LAYERS, LR, N_EPOCHS,train
   print(f"{i+1}\t{test_loss_data:.3f}\t{test_acc_data*100:.2f}%")
   
   # -------------------------- ROC curve -------------------------- #
-  fpr, tpr, threshold = roc_curve(test_target,circuit(test_features,get_params(final_state)))
-  auc = roc_auc_score(test_features,circuit(test_features,get_params(final_state)))
-  print(fpr)
-  print(tpr)
-  print(auc)
-  #plt.plot(fpr,tpr,label="QML are = %0.2f" % auc)
-  #plt.savefig('ROC curve for layer' + str(N_LAYERS))
+  predictions = circuit(test_features,get_params(final_state))
+  fpr, tpr, threshold = roc_curve(test_target,predictions)
+  auc = roc_auc_score(test_features,predictions)
+  
+  plt.plot(fpr,tpr,label="ROC QML (layers = " + str(N_LAYERS) + ")(area = %0.2f)" % auc)
+  fname = 'ROC_' + str(N_LAYERS) + 'layers_full_training'+str(TRAIN_SIZE)+'_testing'+str(TEST_SIZE)+'.png'
+  plt.savefig(fname)
   
   return train_loss_data, train_acc_data, test_loss_data, test_acc_data
   
@@ -147,7 +147,7 @@ def run_model():
   
   for i in range(max_layers):
     
-    train_loss_temp, train_acc_temp, test_loss_temp, test_acc_temp= my_model(SEED, TRAIN_SIZE, TEST_SIZE, N_QUBITS, (i+1), LR, N_EPOCHS, train_features,train_target,test_features,test_target)
+    train_loss_temp, train_acc_temp, test_loss_temp, test_acc_temp = my_model(SEED, TRAIN_SIZE, TEST_SIZE, N_QUBITS, (i+1), LR, N_EPOCHS, train_features,train_target,test_features,test_target)
     
     train_loss_data[:,i] = train_loss_temp
     train_acc_data[:,i] = train_acc_temp
