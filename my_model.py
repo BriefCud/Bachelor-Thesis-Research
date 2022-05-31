@@ -52,53 +52,71 @@ def my_model(SEED, TRAIN_SIZE, TEST_SIZE, N_QUBITS, N_LAYERS, LR, N_EPOCHS):
   # Training step
   # This function is compiled Just-In-Time on the GPU
   @jax.jit
-  def step(stepid, opt_state,train_f,train_t,test_f,test_t):
+  def train_step(stepid, opt_state,train_f,train_t,test_f,test_t):
     current_w = get_params(opt_state)
     loss_value, grads = jax.value_and_grad(loss_fn,argnums=0)(current_w,train_f,train_t)
     acc_value = acc_fn(current_w,test_f,test_t)
     opt_state = opt_update(stepid, grads, opt_state)
     return loss_value,acc_value, opt_state
   
+  def test_step(final_state,test_f,test_t):
+    current_w = get_params(final_state)
+    loss_value, grads = jax.value_and_grad(loss_fn,argnums=0)(current_w,test_f,test_t)
+    acc_value = acc_fn(current_w,test_f,test_t)
+  
   def batch_and_shuffle(x,y,batch_size):
     assert (x % batch_size) == 0 and (y % batch_size) == 0
     z = int(len(x) / batch_size)
     data = np.comulmn_stack(x,y)
-    data = np.random.shuffle(data)
-    new_x = data[:,0:N_QUBITS-1]
-    new_y = data[:,-1]
-    return np.split(new_x,z), np.split(new_y,z),z
+    np.random.shuffle(data)
+    return np.split(data[:,0:N_QUBITS],z), np.split(data[:,-1],z),z
   
-  loss_data = np.zeros(N_EPOCHS)
-  acc_data = np.zeros(N_EPOCHS)
+  train_loss_data = np.zeros(N_EPOCHS)
+  train_acc_data = np.zeros(N_EPOCHS)
   batch_size = 250
+  print("Training...")
   print("Epoch\tLoss\tAccuracy")
   for i in range(N_EPOCHS):
+    
     # Batch and shuffle the data for ever epoch
     train_f, train_t, chunks = batch_and_shuffle(np.array(train_features), np.array(train_target), batch_size)
-    test_f, test_t, chunks = batch_and_shuffle(np.array(test_features), np.array(test_target), batch_size)
     loss_temp = np.zeros(chunks)
     acc_temp = np.zeros(chunks)
 
     for j in range(chunks):
-      loss_temp[j],acc_temp[j], opt_state = step(i, opt_state, train_f[j], train_t[j], test_f[j], test_t[j])
+      loss_temp[j],acc_temp[j], opt_state = train_step(i, opt_state, train_f[j], train_t[j])
 
-    loss_data[i] = np.average(loss_temp)
-    acc_data[i] = np.average(acc_temp)
+    train_loss_data[i] = np.average(loss_temp)
+    train_acc_data[i] = np.average(acc_temp)
 
     if (i+1) % 100 == 0:
       print(f"{i+1}\t{loss_value:.3f}\t{acc_value*100:.2f}%")
+    
+  print("Testing...")  
+  print("\tLoss\tAccuracy")
+  loss_temp = np.zeros(chunks)
+  acc_temp = np.zeros(chunks)
+  # Batch and shuffle the data for ever epoch
+  test_f, test_t, chunks = batch_and_shuffle(np.array(test_features), np.array(test_target), batch_size)
+  for j in range(chunks):
+    loss_temp[j],acc_temp[j], opt_state = test_step(i, opt_state, test_f[j], test_t[j])
+
+  test_loss_data[i] = np.average(loss_temp)
+  test_acc_data[i] = np.average(acc_temp)
+
+  print(f"{i+1}\t{loss_value:.3f}\t{acc_value*100:.2f}%")
   
-  return loss_data, acc_data
+  return train_loss_data, train_acc_data, test_loss_data, test_acc_data
   
  def run_model():
   
   SEED=0      
-  TRAIN_SIZE = 10000 
-  TEST_SIZE = 10000
+  TRAIN_SIZE = 100 
+  TEST_SIZE = 100
   N_QUBITS = 16   
   N_LAYERS = 2
   LR=1e-2 
-  N_EPOCHS = 1000
+  N_EPOCHS = 200
   
   loss_data = np.zeros([N_EPOCHS, 10])
   acc_data = np.zeros([N_EPOCHS, 10])
