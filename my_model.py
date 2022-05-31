@@ -148,7 +148,7 @@ def run_model():
   
   for i in range(max_layers):
     
-    train_loss_temp, train_acc_temp, test_loss_temp, test_acc_temp= my_model(SEED, TRAIN_SIZE, TEST_SIZE, N_QUBITS, i, LR, N_EPOCHS, train_features,train_target,test_features,test_target)
+    train_loss_temp, train_acc_temp, test_loss_temp, test_acc_temp= my_model(SEED, TRAIN_SIZE, TEST_SIZE, N_QUBITS, (i+1), LR, N_EPOCHS, train_features,train_target,test_features,test_target)
     
     train_loss_data[:,i] = train_loss_temp
     train_acc_data[:,i] = train_acc_temp
