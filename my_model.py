@@ -15,7 +15,6 @@ def my_model(SEED, TRAIN_SIZE, TEST_SIZE, N_QUBITS, N_LAYERS, LR, N_EPOCHS):
   # Loads the dataset (already preprocessed... see dataset.py)
   train_features,train_target,test_features,test_target = ld_full(TRAIN_SIZE,TEST_SIZE,SEED)
   
-  
   # Definition of the quantum circuit
   # x : features from the jet structure
   # w : weights of the model
@@ -62,12 +61,12 @@ def my_model(SEED, TRAIN_SIZE, TEST_SIZE, N_QUBITS, N_LAYERS, LR, N_EPOCHS):
   
   def batch_and_shuffle(x,y,batch_size):
     assert (x % batch_size) == 0 and (y % batch_size) == 0
-    z = len(x) / batch_size
-    data = jnp.comulmn_stack(x,y)
-    data = jnp.random.shuffle(data)
+    z = int(len(x) / batch_size)
+    data = np.comulmn_stack(x,y)
+    data = np.random.shuffle(data)
     new_x = data[:,0:N_QUBITS-1]
     new_y = data[:,-1]
-    return jnp.split(new_x,z), jnp.split(new_y,z),z
+    return np.split(new_x,z), np.split(new_y,z),z
   
   loss_data = np.zeros(N_EPOCHS)
   acc_data = np.zeros(N_EPOCHS)
@@ -75,8 +74,8 @@ def my_model(SEED, TRAIN_SIZE, TEST_SIZE, N_QUBITS, N_LAYERS, LR, N_EPOCHS):
   print("Epoch\tLoss\tAccuracy")
   for i in range(N_EPOCHS):
     # Batch and shuffle the data for ever epoch
-    train_f, train_t, chunks = batch_and_shuffle(jnp.array(train_features), jnp.array(train_target), batch_size)
-    test_f, test_t, chunks = batch_and_shuffle(jnp.array(test_features), jnp.array(test_target), batch_size)
+    train_f, train_t, chunks = batch_and_shuffle(np.array(train_features), np.array(train_target), batch_size)
+    test_f, test_t, chunks = batch_and_shuffle(np.array(test_features), np.array(test_target), batch_size)
     loss_temp = np.zeros(chunks)
     acc_temp = np.zeros(chunks)
 
