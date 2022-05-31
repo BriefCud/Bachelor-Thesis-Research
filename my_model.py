@@ -80,7 +80,7 @@ def my_model(SEED, TRAIN_SIZE, TEST_SIZE, N_QUBITS, N_LAYERS, LR, N_EPOCHS):
     loss_temp = np.zeros(chunks)
     acc_temp = np.zeros(chunks)
 
-    for j in range(chunks)
+    for j in range(chunks):
       loss_temp[j],acc_temp[j], opt_state = step(i, opt_state, train_f[j], train_t[j], test_f[j], test_t[j])
 
     loss_data[i] = np.average(loss_temp)
