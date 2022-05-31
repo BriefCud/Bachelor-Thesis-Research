@@ -108,7 +108,7 @@ def my_model(SEED, TRAIN_SIZE, TEST_SIZE, N_QUBITS, N_LAYERS, LR, N_EPOCHS):
   
   return train_loss_data, train_acc_data, test_loss_data, test_acc_data
   
- def run_model():
+def run_model():
   
   SEED=0      
   TRAIN_SIZE = 100 
