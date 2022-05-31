@@ -86,7 +86,7 @@ def my_model(SEED, TRAIN_SIZE, TEST_SIZE, N_QUBITS, N_LAYERS, LR, N_EPOCHS):
     loss_data[i] = np.average(loss_temp)
     acc_data[i] = np.average(acc_temp)
 
-  if (i+1) % 100 == 0:
+    if (i+1) % 100 == 0:
       print(f"{i+1}\t{loss_value:.3f}\t{acc_value*100:.2f}%")
   
   return loss_data, acc_data
