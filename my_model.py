@@ -66,7 +66,7 @@ def my_model(SEED, TRAIN_SIZE, TEST_SIZE, N_QUBITS, N_LAYERS, LR, N_EPOCHS):
   
   def batch_and_shuffle(x,y,batch_size):
     z = int(len(x) / batch_size)
-    data = np.column_stack(x,y)
+    data = np.column_stack([x,y])
     np.random.shuffle(data)
     return np.split(data[:,0:N_QUBITS],z), np.split(data[:,-1],z),z
   
