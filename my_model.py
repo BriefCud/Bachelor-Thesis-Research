@@ -6,14 +6,13 @@ from dataset_muon import load_dataset as ld_muon
 from functools import partial
 import jax
 from jax.example_libraries.optimizers import adam
+import sklearn
+from sklearn.metrics import roc_curve, roc_auc_score 
 
-def my_model(SEED, TRAIN_SIZE, TEST_SIZE, N_QUBITS, N_LAYERS, LR, N_EPOCHS):
+def my_model(SEED, TRAIN_SIZE, TEST_SIZE, N_QUBITS, N_LAYERS, LR, N_EPOCHS,train_features,train_target,test_features,test_target):
   
   # Definiton of the Pennylane device using JAX
   device = qml.device("default.qubit.jax", wires=N_QUBITS,prng_key = jax.random.PRNGKey(SEED))
-
-  # Loads the dataset (already preprocessed... see dataset.py)
-  train_features,train_target,test_features,test_target = ld_full(TRAIN_SIZE,TEST_SIZE,SEED)
   
   # Definition of the quantum circuit
   # x : features from the jet structure
@@ -29,6 +28,7 @@ def my_model(SEED, TRAIN_SIZE, TEST_SIZE, N_QUBITS, N_LAYERS, LR, N_EPOCHS):
   @qml.qnode(device,interface='jax')  # Create a Pennylane QNode
   def circuit(x,w):
       qml.AngleEmbedding(x,wires=range(N_QUBITS))   # Features x are embedded in rotation angles
+      #qml.TTN(wires=range(N_QUBITS), n_block_wires=, block=, n_params_block=, template_weights=w)
       qml.StronglyEntanglingLayers(w,wires=range(N_QUBITS)) # Variational layer
       return qml.expval(qml.PauliZ(0)) # Expectation value of the \sigma_z operator on the 1st qubit
 
@@ -71,9 +71,11 @@ def my_model(SEED, TRAIN_SIZE, TEST_SIZE, N_QUBITS, N_LAYERS, LR, N_EPOCHS):
     np.random.shuffle(data)
     return np.split(data[:,0:N_QUBITS],z), np.split(data[:,-1],z),z
   
+  # -------------------------- Training -------------------------- #
+  
   train_loss_data = np.zeros(N_EPOCHS)
   train_acc_data = np.zeros(N_EPOCHS)
-  batch_size = 250
+  batch_size = 50
   print("Training...")
   print("Epoch\tLoss\tAccuracy")
   for i in range(N_EPOCHS):
@@ -95,6 +97,8 @@ def my_model(SEED, TRAIN_SIZE, TEST_SIZE, N_QUBITS, N_LAYERS, LR, N_EPOCHS):
    
   final_state = opt_state
   
+  # -------------------------- TESTING -------------------------- #
+  
   print("Testing...")  
   print("\tLoss\tAccuracy")
   loss_temp = np.zeros(chunks)
@@ -109,6 +113,15 @@ def my_model(SEED, TRAIN_SIZE, TEST_SIZE, N_QUBITS, N_LAYERS, LR, N_EPOCHS):
 
   print(f"{i+1}\t{test_loss_data:.3f}\t{test_acc_data*100:.2f}%")
   
+  # -------------------------- ROC curve -------------------------- #
+  fpr, tpr, threshold = roc_curve(test_target,circuit(test_features,get_params(final_state)))
+  auc = roc_auc_score(test_features,circuit(test_features,get_params(final_state)))
+  print(fpr)
+  print(tpr)
+  print(auc)
+  #plt.plot(fpr,tpr,label="QML are = %0.2f" % auc)
+  #plt.savefig('ROC curve for layer' + str(N_LAYERS))
+  
   return train_loss_data, train_acc_data, test_loss_data, test_acc_data
   
 def run_model():
@@ -119,18 +132,23 @@ def run_model():
   N_QUBITS = 16   
   N_LAYERS = 2
   LR=1e-2 
-  N_EPOCHS = 200
+  N_EPOCHS = 100
   
-  train_loss_data = np.zeros([N_EPOCHS, 10])
-  train_acc_data = np.zeros([N_EPOCHS, 10])
-  test_loss_data = np.zeros([N_EPOCHS, 10])
-  test_acc_data = np.zeros([N_EPOCHS, 10])
-  num_layer = np.linspace(1,10, num =10)
-  y_error = np.zeros(10)
+   # Loads the dataset (already preprocessed... see dataset.py)
+  train_features,train_target,test_features,test_target = ld_full(TRAIN_SIZE,TEST_SIZE,SEED)
   
-  for i in range(10):
+  max_layers = 8
+  
+  train_loss_data = np.zeros([N_EPOCHS, max_layers])
+  train_acc_data = np.zeros([N_EPOCHS, max_layers])
+  test_loss_data = np.zeros([N_EPOCHS, max_layers])
+  test_acc_data = np.zeros([N_EPOCHS, max_layers])
+  num_layer = np.linspace(1,max_layers, num =max_layers)
+  y_error = np.zeros(max_layers)
+  
+  for i in range(max_layers):
     
-    train_loss_temp, train_acc_temp, test_loss_temp, test_acc_temp = my_model(SEED, TRAIN_SIZE, TEST_SIZE, N_QUBITS, i, LR, N_EPOCHS)
+    train_loss_temp, train_acc_temp, test_loss_temp, test_acc_temp= my_model(SEED, TRAIN_SIZE, TEST_SIZE, N_QUBITS, i, LR, N_EPOCHS, train_features,train_target,test_features,test_target)
     
     train_loss_data[:,i] = train_loss_temp
     train_acc_data[:,i] = train_acc_temp
@@ -146,8 +164,7 @@ def run_model():
   plt.errorbar(num_layer,train_acc_data[-1,:],yerr=y_error)
   plt.plot(num_layer,test_acc_data)
   file_name = 'full_training'+str(TRAIN_SIZE)+'_testing'+str(TEST_SIZE)+'.png'
-  plt.savefig(file_name)
-  
+  plt.savefig(file_name) 
    
 run_model()
 
