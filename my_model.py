@@ -115,7 +115,7 @@ def my_model(SEED, TRAIN_SIZE, TEST_SIZE, N_QUBITS, N_LAYERS, LR, N_EPOCHS,train
   # -------------------------- ROC curve -------------------------- #
   predictions = circuit(test_features,get_params(final_state))
   fpr, tpr, threshold = roc_curve(test_target,predictions)
-  auc = roc_auc_score(test_features,predictions)
+  auc = roc_auc_score(test_target,predictions)
   
   plt.plot(fpr,tpr,label="ROC QML (layers = " + str(N_LAYERS) + ")(area = %0.2f)" % auc)
   fname = 'ROC_' + str(N_LAYERS) + 'layers_full_training'+str(TRAIN_SIZE)+'_testing'+str(TEST_SIZE)+'.png'
