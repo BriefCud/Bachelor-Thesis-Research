@@ -93,7 +93,6 @@ def my_model(SEED, TRAIN_SIZE, TEST_SIZE, N_QUBITS, N_LAYERS, LR, N_EPOCHS,train
 
     if (i+1) % 100 == 0:
       print(f"{i+1}\t{ train_loss_data[i]:.3f}\t{train_acc_data[i]*100:.2f}%")
-      print(get_params(opt_state))
    
   final_state = opt_state
   
