@@ -63,6 +63,7 @@ def my_model(SEED, TRAIN_SIZE, TEST_SIZE, N_QUBITS, N_LAYERS, LR, N_EPOCHS):
     current_w = get_params(final_state)
     loss_value, grads = jax.value_and_grad(loss_fn,argnums=0)(current_w,test_f,test_t)
     acc_value = acc_fn(current_w,test_f,test_t)
+    return loss_value, acc_value
   
   def batch_and_shuffle(x,y,batch_size):
     z = int(len(x) / batch_size)
@@ -100,7 +101,7 @@ def my_model(SEED, TRAIN_SIZE, TEST_SIZE, N_QUBITS, N_LAYERS, LR, N_EPOCHS):
   # Batch and shuffle the data for ever epoch
   test_f, test_t, chunks = batch_and_shuffle(np.array(test_features), np.array(test_target), batch_size)
   for j in range(chunks):
-    loss_temp[j],acc_temp[j], opt_state = test_step(final_state, test_f[j], test_t[j])
+    loss_temp[j],acc_temp[j] = test_step(final_state, test_f[j], test_t[j])
 
   test_loss_data = np.average(loss_temp)
   test_acc_data = np.average(acc_temp)
