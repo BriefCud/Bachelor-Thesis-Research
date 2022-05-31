@@ -52,10 +52,10 @@ def my_model(SEED, TRAIN_SIZE, TEST_SIZE, N_QUBITS, N_LAYERS, LR, N_EPOCHS):
   # Training step
   # This function is compiled Just-In-Time on the GPU
   @jax.jit
-  def train_step(stepid, opt_state,train_f,train_t,test_f,test_t):
+  def train_step(stepid, opt_state,train_f,train_t):
     current_w = get_params(opt_state)
     loss_value, grads = jax.value_and_grad(loss_fn,argnums=0)(current_w,train_f,train_t)
-    acc_value = acc_fn(current_w,test_f,test_t)
+    acc_value = acc_fn(current_w,train_f,train_t)
     opt_state = opt_update(stepid, grads, opt_state)
     return loss_value,acc_value, opt_state
   
