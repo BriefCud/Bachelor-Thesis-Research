@@ -89,7 +89,7 @@ def my_model(SEED, TRAIN_SIZE, TEST_SIZE, N_QUBITS, N_LAYERS, LR, N_EPOCHS):
     train_acc_data[i] = np.average(acc_temp)
 
     if (i+1) % 100 == 0:
-      print(f"{i+1}\t{loss_value:.3f}\t{acc_value*100:.2f}%")
+      print(f"{i+1}\t{ train_loss_data[i]:.3f}\t{train_acc_data[i]*100:.2f}%")
    
   final_state = opt_state
   
@@ -105,7 +105,7 @@ def my_model(SEED, TRAIN_SIZE, TEST_SIZE, N_QUBITS, N_LAYERS, LR, N_EPOCHS):
   test_loss_data = np.average(loss_temp)
   test_acc_data = np.average(acc_temp)
 
-  print(f"{i+1}\t{loss_value:.3f}\t{acc_value*100:.2f}%")
+  print(f"{i+1}\t{test_loss_data:.3f}\t{test_acc_data*100:.2f}%")
   
   return train_loss_data, train_acc_data, test_loss_data, test_acc_data
   
