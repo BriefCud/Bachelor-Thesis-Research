@@ -44,12 +44,6 @@ def QuantumModel(SEED, TRAIN_SIZE, TEST_SIZE, N_QUBITS, N_LAYERS, LR, N_EPOCHS):
   test_dataframe, chunks = Split(test_features, 1000)
   test_target_dataframe, chunks = Split(test_target, 1000)
 
-  #loss_train = partial(loss_fn,x=train_features,y=train_target.to_numpy())
-  #acc_train = partial(acc_fn,x=train_features,y=train_target.to_numpy())
-
-  #loss_test = partial(loss_fn,x=test_features,y=test_target.to_numpy())
-  #acc_test = partial(acc_fn,x=test_features,y=test_target.to_numpy())
-
   weights = jax.random.uniform(jax.random.PRNGKey(SEED), (N_LAYERS, N_QUBITS, 3))*jax.numpy.pi
 
   opt_init, opt_update, get_params = adam(LR)
@@ -70,16 +64,14 @@ def QuantumModel(SEED, TRAIN_SIZE, TEST_SIZE, N_QUBITS, N_LAYERS, LR, N_EPOCHS):
 
   print("Epoch\tLoss\tAccuracy")
   for i in range(N_EPOCHS):
+    loss_temp = np.zeros(chunks)
+    acc_temp = np.zeros(chunks)
     for j in range(chunks):
-      loss_temp = np.zeros(chunks)
-      acc_temp = np.zeros(chunks)
       loss_value,acc_value, opt_state = train_step(i,opt_state,train_dataframe[j],train_target_dataframe[j])
       loss_temp[j] = loss_value
       acc_temp[j] = acc_value
-    loss_avg = np.average(loss_temp)
-    acc_avg = np.average(acc_temp)
-    train_loss_data[i] = loss_avg
-    train_acc_data[i] = acc_avg
+    train_loss_data[i] = np.average(loss_temp)
+    train_acc_data[i] = np.average(acc_temp)
     if (i+1) % 100 == 0:
         print(f"{i+1}\t{loss_value:.3f}\t{acc_value*100:.2f}%")
   final_state = opt_state
