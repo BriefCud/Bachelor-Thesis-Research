@@ -73,21 +73,21 @@ def my_model(SEED, TRAIN_SIZE, TEST_SIZE, N_QUBITS, N_LAYERS, LR, N_EPOCHS):
   acc_data = np.zeros(N_EPOCHS)
   batch_size = 250
   print("Epoch\tLoss\tAccuracy")
-   for i in range(N_EPOCHS):
-      # Batch and shuffle the data for ever epoch
-      train_f, train_t, chunks = batch_and_shuffle(jnp.array(train_features), jnp.array(train_target), batch_size)
-      test_f, test_t, chunks = batch_and_shuffle(jnp.array(test_features), jnp.array(test_target), batch_size)
-      loss_temp = np.zeros(chunks)
-      acc_temp = np.zeros(chunks)
-      
-      for j in range(chunks)
-        loss_temp[j],acc_temp[j], opt_state = step(i, opt_state, train_f[j], train_t[j], test_f[j], test_t[j])
-        
-      loss_data[i] = np.average(loss_temp)
-      acc_data[i] = np.average(acc_temp)
-      
-    if (i+1) % 100 == 0:
-        print(f"{i+1}\t{loss_value:.3f}\t{acc_value*100:.2f}%")
+  for i in range(N_EPOCHS):
+    # Batch and shuffle the data for ever epoch
+    train_f, train_t, chunks = batch_and_shuffle(jnp.array(train_features), jnp.array(train_target), batch_size)
+    test_f, test_t, chunks = batch_and_shuffle(jnp.array(test_features), jnp.array(test_target), batch_size)
+    loss_temp = np.zeros(chunks)
+    acc_temp = np.zeros(chunks)
+
+    for j in range(chunks)
+      loss_temp[j],acc_temp[j], opt_state = step(i, opt_state, train_f[j], train_t[j], test_f[j], test_t[j])
+
+    loss_data[i] = np.average(loss_temp)
+    acc_data[i] = np.average(acc_temp)
+
+  if (i+1) % 100 == 0:
+      print(f"{i+1}\t{loss_value:.3f}\t{acc_value*100:.2f}%")
   
   return loss_data, acc_data
   
