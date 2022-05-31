@@ -65,7 +65,6 @@ def my_model(SEED, TRAIN_SIZE, TEST_SIZE, N_QUBITS, N_LAYERS, LR, N_EPOCHS):
     acc_value = acc_fn(current_w,test_f,test_t)
   
   def batch_and_shuffle(x,y,batch_size):
-    assert (x % batch_size) == 0 and (y % batch_size) == 0
     z = int(len(x) / batch_size)
     data = np.comulmn_stack(x,y)
     np.random.shuffle(data)
