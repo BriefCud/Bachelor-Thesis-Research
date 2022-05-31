@@ -90,7 +90,9 @@ def my_model(SEED, TRAIN_SIZE, TEST_SIZE, N_QUBITS, N_LAYERS, LR, N_EPOCHS):
 
     if (i+1) % 100 == 0:
       print(f"{i+1}\t{loss_value:.3f}\t{acc_value*100:.2f}%")
-    
+   
+  final_state = opt_state
+  
   print("Testing...")  
   print("\tLoss\tAccuracy")
   loss_temp = np.zeros(chunks)
@@ -98,10 +100,10 @@ def my_model(SEED, TRAIN_SIZE, TEST_SIZE, N_QUBITS, N_LAYERS, LR, N_EPOCHS):
   # Batch and shuffle the data for ever epoch
   test_f, test_t, chunks = batch_and_shuffle(np.array(test_features), np.array(test_target), batch_size)
   for j in range(chunks):
-    loss_temp[j],acc_temp[j], opt_state = test_step(i, opt_state, test_f[j], test_t[j])
+    loss_temp[j],acc_temp[j], opt_state = test_step(final_state, test_f[j], test_t[j])
 
-  test_loss_data[i] = np.average(loss_temp)
-  test_acc_data[i] = np.average(acc_temp)
+  test_loss_data = np.average(loss_temp)
+  test_acc_data = np.average(acc_temp)
 
   print(f"{i+1}\t{loss_value:.3f}\t{acc_value*100:.2f}%")
   
@@ -117,22 +119,30 @@ def run_model():
   LR=1e-2 
   N_EPOCHS = 200
   
-  loss_data = np.zeros([N_EPOCHS, 10])
-  acc_data = np.zeros([N_EPOCHS, 10])
+  train_loss_data = np.zeros([N_EPOCHS, 10])
+  train_acc_data = np.zeros([N_EPOCHS, 10])
+  test_loss_data = np.zeros([N_EPOCHS, 10])
+  test_acc_data = np.zeros([N_EPOCHS, 10])
   num_layer = np.linspace(1,10, num =10)
   y_error = np.zeros(10)
   
   for i in range(10):
     
-    loss_temp, acc_temp = my_model(SEED, TRAIN_SIZE, TEST_SIZE, N_QUBITS, i, LR, N_EPOCHS)
-    loss_data[:,i] = loss_temp
-    acc_data[:,i] = acc_temp
-    y_error[i] = np.std(acc_temp)
+    train_loss_temp, train_acc_temp, test_loss_temp, test_acc_temp = my_model(SEED, TRAIN_SIZE, TEST_SIZE, N_QUBITS, i, LR, N_EPOCHS)
+    
+    train_loss_data[:,i] = train_loss_temp
+    train_acc_data[:,i] = train_acc_temp
+    
+    test_loss_data[i] = test_loss_temp
+    test_acc_data[i] = test_acc_temp
+    
+    y_error[i] = np.std(train_acc_temp)
     
   plt.title('Accuracy vs Layers')
   plt.xlabel("# of layers", sie=14)
   plt.ylabel('Accuracy', size=14)
-  plt.errorbar(num_layer,acc_data[-1,:],yerr=y_error)
+  plt.errorbar(num_layer,train_acc_data[-1,:],yerr=y_error)
+  plt.plot(num_layer,test_acc_data)
   file_name = 'full_training'+str(TRAIN_SIZE)+'_testing'+str(TEST_SIZE)+'.png'
   plt.savefig(file_name)
   
