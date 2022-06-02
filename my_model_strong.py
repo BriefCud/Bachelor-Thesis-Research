@@ -14,6 +14,9 @@ def my_model(SEED, TRAIN_SIZE, TEST_SIZE, N_QUBITS, N_LAYERS, LR, N_EPOCHS,train
   # Definiton of the Pennylane device using JAX
   device = qml.device("default.qubit.jax", wires=N_QUBITS,prng_key = jax.random.PRNGKey(SEED))
   
+  def block(weights,wires):
+    
+  
   # Definition of the quantum circuit
   # x : features from the jet structure
   # w : weights of the model
@@ -28,7 +31,6 @@ def my_model(SEED, TRAIN_SIZE, TEST_SIZE, N_QUBITS, N_LAYERS, LR, N_EPOCHS,train
   @qml.qnode(device,interface='jax')  # Create a Pennylane QNode
   def circuit(x,w):
       qml.AngleEmbedding(x,wires=range(N_QUBITS))   # Features x are embedded in rotation angles
-      #qml.TTN(wires=range(N_QUBITS), n_block_wires=, block=, n_params_block=, template_weights=w)
       qml.StronglyEntanglingLayers(w,wires=range(N_QUBITS)) # Variational layer
       return qml.expval(qml.PauliZ(0)) # Expectation value of the \sigma_z operator on the 1st qubit
 
@@ -133,7 +135,7 @@ def run_model():
   LR=1e-2 
   N_EPOCHS = 100
   
-   # Loads the dataset (already preprocessed... see dataset.py)
+  # Loads the dataset (already preprocessed... see dataset.py)
   train_features,train_target,test_features,test_target = ld_full(TRAIN_SIZE,TEST_SIZE,SEED)
   
   max_layers = 8
