@@ -13,10 +13,7 @@ def my_model(SEED, TRAIN_SIZE, TEST_SIZE, N_QUBITS, N_LAYERS, LR, N_EPOCHS,train
   
   # Definiton of the Pennylane device using JAX
   device = qml.device("default.qubit.jax", wires=N_QUBITS,prng_key = jax.random.PRNGKey(SEED))
-  
-  def block(weights,wires):
     
-  
   # Definition of the quantum circuit
   # x : features from the jet structure
   # w : weights of the model
