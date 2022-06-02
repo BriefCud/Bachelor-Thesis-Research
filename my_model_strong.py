@@ -74,7 +74,7 @@ def my_model(SEED, TRAIN_SIZE, TEST_SIZE, N_QUBITS, N_LAYERS, LR, N_EPOCHS,train
   
   train_loss_data = np.zeros(N_EPOCHS)
   train_acc_data = np.zeros(N_EPOCHS)
-  batch_size = 50
+  batch_size = 200
   print("Training...")
   print("Epoch\tLoss\tAccuracy")
   for i in range(N_EPOCHS):
@@ -94,6 +94,8 @@ def my_model(SEED, TRAIN_SIZE, TEST_SIZE, N_QUBITS, N_LAYERS, LR, N_EPOCHS,train
       print(f"{i+1}\t{ train_loss_data[i]:.3f}\t{train_acc_data[i]*100:.2f}%")
    
   final_state = opt_state
+  file_weigths = "strong_weights_with_" + str(N_LAYERS) + "layers.npy"
+  np.save(file_weights,get_params(weights))
   
   # -------------------------- TESTING -------------------------- #
   
@@ -125,12 +127,12 @@ def my_model(SEED, TRAIN_SIZE, TEST_SIZE, N_QUBITS, N_LAYERS, LR, N_EPOCHS,train
 def run_model():
   
   SEED=0      
-  TRAIN_SIZE = 100 
-  TEST_SIZE = 100
+  TRAIN_SIZE = 65000 
+  TEST_SIZE = 40000
   N_QUBITS = 16   
   N_LAYERS = 2
   LR=1e-2 
-  N_EPOCHS = 100
+  N_EPOCHS = 1500
   
   # Loads the dataset (already preprocessed... see dataset.py)
   train_features,train_target,test_features,test_target = ld_full(TRAIN_SIZE,TEST_SIZE,SEED)
@@ -155,7 +157,12 @@ def run_model():
     test_acc_data[i] = test_acc_temp
     
     y_error[i] = np.std(train_acc_temp)
-    
+  
+  np.savetxt('train_loss.csv',train_loss_data, delimiter=',')
+  np.savetxt('train_acc.csv',train_acc_data, delimiter=',')
+  np.savetxt('test_loss.csv',test_acc_data, delimiter=',')
+  np.savetxt('test_acc.csv',test_acc_data, delimiter=',')
+  
   plt.title('Accuracy vs Layers')
   plt.xlabel("# of layers", sie=14)
   plt.ylabel('Accuracy', size=14)
