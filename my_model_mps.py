@@ -175,7 +175,7 @@ def run_model():
   
   d = {'Epochs': ep, 'Train Loss': train_loss, 'Train Accuracy':train_acc, 'Test Loss':test_loss, 'Test Accuracy':test_acc}
   frame = pd.DataFrame(d)
-  frame.to_csv('MPS_Loss_Accuracy_data', index=False)
+  frame.to_csv('mps_loss_accuracy_data', index=False)
   
 run_model()
 
