@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 import pennylane as qml
 import matplotlib.pyplot as plt
 from dataset16 import load_dataset as ld_full
@@ -34,7 +35,7 @@ def my_model(SEED, TRAIN_SIZE, TEST_SIZE, N_QUBITS, N_PARAMS_B, LR, N_EPOCHS,tra
   @qml.qnode(device,interface='jax')  # Create a Pennylane QNode
   def circuit(x,w):
       qml.AngleEmbedding(x,wires=range(N_QUBITS))   # Features x are embedded in rotation angles
-      qml.MPS(wires=range(N_QUBITS), n_block_wires=2,block=block, n_params_block=N_PARAMS_B, template_weights=) # Variational layer
+      qml.MPS(wires=range(N_QUBITS), n_block_wires=2,block=block, n_params_block=N_PARAMS_B, template_weights=w) # Variational layer
       return qml.expval(qml.PauliZ(0)) # Expectation value of the \sigma_z operator on the 1st qubit
 
   # Simple MSE loss function
@@ -80,7 +81,7 @@ def my_model(SEED, TRAIN_SIZE, TEST_SIZE, N_QUBITS, N_PARAMS_B, LR, N_EPOCHS,tra
   
   train_loss_data = np.zeros(N_EPOCHS)
   train_acc_data = np.zeros(N_EPOCHS)
-  batch_size = 50
+  batch_size = 200
   print("Training...")
   print("Epoch\tLoss\tAccuracy")
   for i in range(N_EPOCHS):
@@ -95,11 +96,14 @@ def my_model(SEED, TRAIN_SIZE, TEST_SIZE, N_QUBITS, N_PARAMS_B, LR, N_EPOCHS,tra
 
     train_loss_data[i] = np.average(loss_temp)
     train_acc_data[i] = np.average(acc_temp)
+    np.save("mps_w\mps_weights_epcoh.npy" + str(i+1), get_params(opt_state))
 
     if (i+1) % 100 == 0:
       print(f"{i+1}\t{ train_loss_data[i]:.3f}\t{train_acc_data[i]*100:.2f}%")
    
   final_state = opt_state
+  file_weights = "mps_w\final_mps_weights.npy"
+  np.save(file_weights, get_params(final_state))
   
   # -------------------------- TESTING -------------------------- #
   
@@ -122,7 +126,12 @@ def my_model(SEED, TRAIN_SIZE, TEST_SIZE, N_QUBITS, N_PARAMS_B, LR, N_EPOCHS,tra
   fpr, tpr, threshold = roc_curve(test_target,predictions)
   auc = roc_auc_score(test_target,predictions)
   
-  plt.plot(fpr,tpr,label="ROC QML (layers = " + str(N_LAYERS) + ")(area = %0.2f)" % auc)
+  plt.plot([0, 1], [0, 1], color="navy", lw=lw, linestyle="--")
+  plt.plot(fpr,tpr,label="ROC QML,MPS")(area = %0.2f)" % auc)
+  plt.xlabel("False Positive Rate")
+  plt.ylabel("True Positive Rate")
+  plt.title("Receiver Operating Characteristic")
+  plt.legend(loc="lower right")
   fname = 'ROC_' + str(N_LAYERS) + 'layers_full_training'+str(TRAIN_SIZE)+'_testing'+str(TEST_SIZE)+'.png'
   plt.savefig(fname)
   plt.clf()
@@ -132,44 +141,41 @@ def my_model(SEED, TRAIN_SIZE, TEST_SIZE, N_QUBITS, N_PARAMS_B, LR, N_EPOCHS,tra
 def run_model():
   
   SEED=0      
-  TRAIN_SIZE = 100 
-  TEST_SIZE = 100
+  TRAIN_SIZE = 20000 
+  TEST_SIZE = 10000
   N_QUBITS = 16   
-  N_LAYERS = 2
+  N_PARAMS_B = 2
   LR=1e-2 
-  N_EPOCHS = 100
+  N_EPOCHS = 3000
   
   # Loads the dataset (already preprocessed... see dataset.py)
-  train_features,train_target,test_features,test_target = ld_full(TRAIN_SIZE,TEST_SIZE,SEED)
+  train_features,train_target,test_features,test_target = ld_muon(TRAIN_SIZE,TEST_SIZE,SEED)
   
-  max_layers = 8
+  train_loss_data = np.zeros(N_EPOCHS)
+  train_acc_data = np.zeros(N_EPOCHS)
+  test_loss_data = np.zeros(N_EPOCHS)
+  test_acc_data = np.zeros(N_EPOCHS)  
+   
+  train_loss, train_acc, test_loss, test_acc = my_model(SEED, TRAIN_SIZE, TEST_SIZE, N_QUBITS, N_PARAMS_B, LR, N_EPOCHS, train_features,train_target,test_features,test_target)
   
-  train_loss_data = np.zeros([N_EPOCHS, max_layers])
-  train_acc_data = np.zeros([N_EPOCHS, max_layers])
-  test_loss_data = np.zeros([N_EPOCHS, max_layers])
-  test_acc_data = np.zeros([N_EPOCHS, max_layers])
-  num_layer = np.linspace(1,max_layers, num =max_layers)
-  y_error = np.zeros(max_layers)
+  ep = np.linspace(1,N_EPOCHS,num=N_EPOCHS)
   
-  for i in range(max_layers):
-    
-    train_loss_temp, train_acc_temp, test_loss_temp, test_acc_temp = my_model(SEED, TRAIN_SIZE, TEST_SIZE, N_QUBITS, (i+1), LR, N_EPOCHS, train_features,train_target,test_features,test_target)
-    
-    train_loss_data[:,i] = train_loss_temp
-    train_acc_data[:,i] = train_acc_temp
-    
-    test_loss_data[i] = test_loss_temp
-    test_acc_data[i] = test_acc_temp
-    
-    y_error[i] = np.std(train_acc_temp)
-    
-  plt.title('Accuracy vs Layers')
-  plt.xlabel("# of layers", sie=14)
-  plt.ylabel('Accuracy', size=14)
-  plt.errorbar(num_layer,train_acc_data[-1,:],yerr=y_error)
-  plt.plot(num_layer,test_acc_data)
+  fig, ax1 = plt.subplots() 
+  ax1.set_xlabel('# of Epochs') 
+  ax1.set_ylabel('Loss', color = 'black') 
+  plot_1 = ax1.plot(ep, train_loss, color = 'black') 
+  ax1.tick_params(axis ='Loss', labelcolor = 'black')
+  ax2 = ax1.twinx() 
+  ax2.set_ylabel('Accuracy', color = 'green') 
+  plot_2 = ax2.plot(ep, train_acc, color = 'green') 
+  ax2.tick_params(axis ='Accuracy', labelcolor = 'green')
+  plt.title("Matrix Product State Architecture Loss and Accuracy")
   file_name = 'full_training'+str(TRAIN_SIZE)+'_testing'+str(TEST_SIZE)+'.png'
   plt.savefig(file_name) 
-   
+  
+  d = {'Epochs': ep, 'Train Loss': train_loss, 'Train Accuracy':train_acc, 'Test Loss':test_loss, 'Test Accuracy':test_acc}
+  frame = pd.DataFrame(d)
+  frame.to_csv('MPS_Loss_Accuracy_data', index=False)
+  
 run_model()
 
