@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 import pennylane as qml
 import matplotlib.pyplot as plt
 from dataset16 import load_dataset as ld_full
@@ -88,7 +89,7 @@ def my_model(SEED, TRAIN_SIZE, TEST_SIZE, N_QUBITS, N_LAYERS, LR, N_EPOCHS,train
       loss_temp[j],acc_temp[j], opt_state = train_step(i, opt_state, train_f[j], train_t[j])
 
     train_loss_data[i] = np.average(loss_temp)
-    train_acc_data[i] = np.average(acc_temp)
+    train_acc_data[i] = np.average(acc_temp)    
 
     if (i+1) % 100 == 0:
       print(f"{i+1}\t{ train_loss_data[i]:.3f}\t{train_acc_data[i]*100:.2f}%")
@@ -158,18 +159,24 @@ def run_model():
     
     y_error[i] = np.std(train_acc_temp)
   
-  np.savetxt('train_loss.csv',train_loss_data, delimiter=',')
-  np.savetxt('train_acc.csv',train_acc_data, delimiter=',')
-  np.savetxt('test_loss.csv',test_acc_data, delimiter=',')
-  np.savetxt('test_acc.csv',test_acc_data, delimiter=',')
+  ep = np.linspace(1,N_EPOCHS,num=N_EPOCHS)
   
-  plt.title('Accuracy vs Layers')
-  plt.xlabel("# of layers", sie=14)
-  plt.ylabel('Accuracy', size=14)
-  plt.errorbar(num_layer,train_acc_data[-1,:],yerr=y_error)
-  plt.plot(num_layer,test_acc_data)
-  file_name = 'full_training'+str(TRAIN_SIZE)+'_testing'+str(TEST_SIZE)+'.png'
+  fig, ax1 = plt.subplots() 
+  ax1.set_xlabel('# of Layers') 
+  ax1.set_ylabel('Loss', color = 'black') 
+  plot_1 = ax1.errorbar(num_layer,train_loss_data[-1,:],yerr=y_error,color = 'black') 
+  ax1.tick_params(axis ='Loss', labelcolor = 'black')
+  ax2 = ax1.twinx() 
+  ax2.set_ylabel('Accuracy', color = 'green') 
+  plot_2 = ax2.plot(num_layer, train_acc_data, color = 'blue') 
+  ax2.tick_params(axis ='Accuracy', labelcolor = 'blue')
+  plt.title("Strongly Entangling Layers, Accuracy and Loss vs Layers")
+  file_name = 'strong_full_training'+str(TRAIN_SIZE)+'_testing'+str(TEST_SIZE)+'.png'
   plt.savefig(file_name) 
+  
+  d = {'Layers': num_layer, 'Train Loss': train_loss_data, 'Train Accuracy':train_acc_data, 'Test Loss':test_loss_data, 'Test Accuracy':test_acc_data}
+  frame = pd.DataFrame(d)
+  frame.to_csv('strong_loss_accuracy_data', index=False)
    
 run_model()
 
