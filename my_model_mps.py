@@ -96,10 +96,10 @@ def my_model(SEED, TRAIN_SIZE, TEST_SIZE, N_QUBITS, N_PARAMS_B, LR, N_EPOCHS,tra
 
     train_loss_data[i] = np.average(loss_temp)
     train_acc_data[i] = np.average(acc_temp)
-    np.save("mps_w\mps_weights_epcoh.npy" + str(i+1), get_params(opt_state))
 
     if (i+1) % 100 == 0:
       print(f"{i+1}\t{ train_loss_data[i]:.3f}\t{train_acc_data[i]*100:.2f}%")
+      np.save("mps_w\mps_weights_epcoh_"+ str(i+1) +".npy", get_params(opt_state))
    
   final_state = opt_state
   file_weights = "mps_w\final_mps_weights.npy"
