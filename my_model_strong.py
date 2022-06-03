@@ -119,7 +119,15 @@ def my_model(SEED, TRAIN_SIZE, TEST_SIZE, N_QUBITS, N_LAYERS, LR, N_EPOCHS,train
   fpr, tpr, threshold = roc_curve(test_target,predictions)
   auc = roc_auc_score(test_target,predictions)
   
-  plt.plot(fpr,tpr,label="ROC QML (layers = " + str(N_LAYERS) + ")(area = %0.2f)" % auc)
+  plt.plot([0, 1], [0, 1], color="navy", lw=lw, linestyle="--")
+  plt.plot(fpr,tpr,label="QML,Strong(area = %0.2f)" % auc)
+  plt.xlabel("False Positive Rate")
+  plt.ylabel("True Positive Rate")
+  plt.title("Receiver Operating Characteristic")
+  plt.legend(loc="lower right")
+  fname = 'ROC_' + str(N_LAYERS) + 'layers_full_training'+str(TRAIN_SIZE)+'_testing'+str(TEST_SIZE)+'.png'
+  plt.savefig(fname)
+  plt.clf()
   fname = 'ROC_' + str(N_LAYERS) + 'layers_full_training'+str(TRAIN_SIZE)+'_testing'+str(TEST_SIZE)+'.png'
   plt.savefig(fname)
   
@@ -128,8 +136,8 @@ def my_model(SEED, TRAIN_SIZE, TEST_SIZE, N_QUBITS, N_LAYERS, LR, N_EPOCHS,train
 def run_model():
   
   SEED=0      
-  TRAIN_SIZE = 65000 
-  TEST_SIZE = 40000
+  TRAIN_SIZE = 10000 
+  TEST_SIZE = 5000
   N_QUBITS = 16   
   N_LAYERS = 2
   LR=1e-2 
