@@ -100,10 +100,10 @@ def my_model(SEED, TRAIN_SIZE, TEST_SIZE, N_QUBITS, N_PARAMS_B, LR, N_EPOCHS,tra
 
     if (i+1) % 100 == 0:
       print(f"{i+1}\t{ train_loss_data[i]:.3f}\t{train_acc_data[i]*100:.2f}%")
-      np.save("mps_w\mps_weights_epcoh_"+ str(i+1) +".npy", get_params(opt_state))
+      np.save("ttn_w\ttn_weights_epcoh_"+ str(i+1) +".npy", get_params(opt_state))
    
   final_state = opt_state
-  file_weights = "mps_w\final_mps_weights.npy"
+  file_weights = "ttn_w\final_mps_weights.npy"
   np.save(file_weights, get_params(final_state))
   
   # -------------------------- TESTING -------------------------- #
@@ -128,12 +128,12 @@ def my_model(SEED, TRAIN_SIZE, TEST_SIZE, N_QUBITS, N_PARAMS_B, LR, N_EPOCHS,tra
   auc = roc_auc_score(test_target,predictions)
   
   plt.plot([0, 1], [0, 1], color="navy", lw=lw, linestyle="--")
-  plt.plot(fpr,tpr,label="ROC QML,MPS")(area = %0.2f)" % auc)
+  plt.plot(fpr,tpr,label="ROC QML,TTN")(area = %0.2f)" % auc)
   plt.xlabel("False Positive Rate")
   plt.ylabel("True Positive Rate")
   plt.title("Receiver Operating Characteristic")
   plt.legend(loc="lower right")
-  fname = 'ROC_mps_training' +str(TRAIN_SIZE)+'_testing'+str(TEST_SIZE)+'.png'
+  fname = 'ROC_ttn_training' +str(TRAIN_SIZE)+'_testing'+str(TEST_SIZE)+'.png'
   plt.savefig(fname)
   plt.clf()
   
@@ -170,12 +170,12 @@ def run_model():
   ax2.set_ylabel('Accuracy', color = 'green') 
   plot_2 = ax2.plot(ep, train_acc, color = 'green') 
   ax2.tick_params(axis ='Accuracy', labelcolor = 'green')
-  plt.title("Matrix Product State Architecture Loss and Accuracy")
+  plt.title("Tree Tensor Network Architecture Loss and Accuracy")
   file_name = 'mps_full_training'+str(TRAIN_SIZE)+'_testing'+str(TEST_SIZE)+'.png'
   plt.savefig(file_name) 
   
   d = {'Epochs': ep, 'Train Loss': train_loss, 'Train Accuracy':train_acc, 'Test Loss':test_loss, 'Test Accuracy':test_acc}
   frame = pd.DataFrame(d)
-  frame.to_csv('mps_loss_accuracy_data', index=False)
+  frame.to_csv('ttn_loss_accuracy_data', index=False)
   
 run_model()
