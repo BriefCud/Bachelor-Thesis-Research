@@ -170,7 +170,7 @@ def run_model():
   plot_2 = ax2.plot(ep, train_acc, color = 'green') 
   ax2.tick_params(axis ='Accuracy', labelcolor = 'green')
   plt.title("Matrix Product State Architecture Loss and Accuracy")
-  file_name = 'full_training'+str(TRAIN_SIZE)+'_testing'+str(TEST_SIZE)+'.png'
+  file_name = 'mps_full_training'+str(TRAIN_SIZE)+'_testing'+str(TEST_SIZE)+'.png'
   plt.savefig(file_name) 
   
   d = {'Epochs': ep, 'Train Loss': train_loss, 'Train Accuracy':train_acc, 'Test Loss':test_loss, 'Test Accuracy':test_acc}
