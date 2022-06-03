@@ -132,7 +132,7 @@ def my_model(SEED, TRAIN_SIZE, TEST_SIZE, N_QUBITS, N_PARAMS_B, LR, N_EPOCHS,tra
   plt.ylabel("True Positive Rate")
   plt.title("Receiver Operating Characteristic")
   plt.legend(loc="lower right")
-  fname = 'ROC_' + str(N_LAYERS) + 'layers_full_training'+str(TRAIN_SIZE)+'_testing'+str(TEST_SIZE)+'.png'
+  fname = 'ROC_mps_training' +str(TRAIN_SIZE)+'_testing'+str(TEST_SIZE)+'.png'
   plt.savefig(fname)
   plt.clf()
   
