@@ -128,7 +128,7 @@ def my_model(SEED, TRAIN_SIZE, TEST_SIZE, N_QUBITS, N_PARAMS_B, LR, N_EPOCHS,tra
   auc = roc_auc_score(test_target,predictions)
   
   plt.plot([0, 1], [0, 1], color="navy", lw=lw, linestyle="--")
-  plt.plot(fpr,tpr,label="ROC QML,TTN")(area = %0.2f)" % auc)
+  plt.plot(fpr,tpr,label="ROC QML,TTN(area = %0.2f)" % auc)
   plt.xlabel("False Positive Rate")
   plt.ylabel("True Positive Rate")
   plt.title("Receiver Operating Characteristic")
