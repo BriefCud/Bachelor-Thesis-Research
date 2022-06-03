@@ -94,7 +94,7 @@ def my_model(SEED, TRAIN_SIZE, TEST_SIZE, N_QUBITS, N_LAYERS, LR, N_EPOCHS,train
       print(f"{i+1}\t{ train_loss_data[i]:.3f}\t{train_acc_data[i]*100:.2f}%")
    
   final_state = opt_state
-  file_weigths = "strong_weights_with_" + str(N_LAYERS) + "layers.npy"
+  file_weights = "strong_weights_with_" + str(N_LAYERS) + "layers.npy"
   np.save(file_weights,get_params(weights))
   
   # -------------------------- TESTING -------------------------- #
