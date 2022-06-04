@@ -65,6 +65,7 @@ def my_model(SEED, TRAIN_SIZE, TEST_SIZE, N_QUBITS, N_PARAMS_B, LR, N_EPOCHS,tra
     opt_state = opt_update(stepid, grads, opt_state)
     return loss_value,acc_value, opt_state
   
+  @jax.jit
   def test_step(final_state,test_f,test_t):
     current_w = get_params(final_state)
     loss_value, grads = jax.value_and_grad(loss_fn,argnums=0)(current_w,test_f,test_t)
