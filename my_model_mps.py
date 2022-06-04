@@ -151,11 +151,6 @@ def run_model():
   
   # Loads the dataset (already preprocessed... see dataset.py)
   train_features,train_target,test_features,test_target = ld_muon(TRAIN_SIZE,TEST_SIZE,SEED)
-  
-  train_loss_data = np.zeros(N_EPOCHS)
-  train_acc_data = np.zeros(N_EPOCHS)
-  test_loss_data = np.zeros(N_EPOCHS)
-  test_acc_data = np.zeros(N_EPOCHS)  
    
   train_loss, train_acc, test_loss, test_acc = my_model(SEED, TRAIN_SIZE, TEST_SIZE, N_QUBITS, N_PARAMS_B, LR, N_EPOCHS, train_features,train_target,test_features,test_target)
   
@@ -165,11 +160,11 @@ def run_model():
   ax1.set_xlabel('# of Epochs') 
   ax1.set_ylabel('Loss', color = 'black') 
   plot_1 = ax1.plot(ep, train_loss, color = 'black') 
-  ax1.tick_params(axis ='Loss', labelcolor = 'black')
+  ax1.tick_params(axis ='y', labelcolor = 'black')
   ax2 = ax1.twinx() 
   ax2.set_ylabel('Accuracy', color = 'green') 
   plot_2 = ax2.plot(ep, train_acc, color = 'green') 
-  ax2.tick_params(axis ='Accuracy', labelcolor = 'green')
+  ax2.tick_params(axis ='y', labelcolor = 'green')
   plt.title("Matrix Product State Architecture Loss and Accuracy")
   file_name = 'mps_full_training'+str(TRAIN_SIZE)+'_testing'+str(TEST_SIZE)+'.png'
   plt.savefig(file_name) 
