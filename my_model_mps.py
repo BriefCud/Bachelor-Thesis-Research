@@ -84,7 +84,7 @@ def my_model(SEED, TRAIN_SIZE, TEST_SIZE, N_QUBITS, N_PARAMS_B, LR, N_EPOCHS,tra
   
   train_loss_data = np.zeros(N_EPOCHS)
   train_acc_data = np.zeros(N_EPOCHS)
-  batch_size = 200
+  batch_size = 100
   print("Training...")
   print("Epoch\tLoss\tAccuracy")
   for i in range(N_EPOCHS):
