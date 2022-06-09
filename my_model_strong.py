@@ -59,6 +59,7 @@ def my_model(SEED, TRAIN_SIZE, TEST_SIZE, N_QUBITS, N_LAYERS, LR, N_EPOCHS,train
     opt_state = opt_update(stepid, grads, opt_state)
     return loss_value,acc_value, opt_state
   
+  @jax.jit
   def test_step(final_state,test_f,test_t):
     current_w = get_params(final_state)
     loss_value, grads = jax.value_and_grad(loss_fn,argnums=0)(current_w,test_f,test_t)
@@ -75,7 +76,7 @@ def my_model(SEED, TRAIN_SIZE, TEST_SIZE, N_QUBITS, N_LAYERS, LR, N_EPOCHS,train
   
   train_loss_data = np.zeros(N_EPOCHS)
   train_acc_data = np.zeros(N_EPOCHS)
-  batch_size = 200
+  batch_size = 100
   print("Training...")
   print("Epoch\tLoss\tAccuracy")
   for i in range(N_EPOCHS):
@@ -128,8 +129,10 @@ def my_model(SEED, TRAIN_SIZE, TEST_SIZE, N_QUBITS, N_LAYERS, LR, N_EPOCHS,train
   fname = 'ROC_' + str(N_LAYERS) + 'layers_full_training'+str(TRAIN_SIZE)+'_testing'+str(TEST_SIZE)+'.png'
   plt.savefig(fname)
   plt.clf()
-  fname = 'ROC_' + str(N_LAYERS) + 'layers_full_training'+str(TRAIN_SIZE)+'_testing'+str(TEST_SIZE)+'.png'
-  plt.savefig(fname)
+  
+  roc_d = {'FPR': fpr, 'TPR': tpr, 'Threshold': threshold, 'area': auc}
+  frame = pd.DataFrame(roc_d)
+  frame.to_csv('mps_roc_data.csv', index=False)
   
   return train_loss_data, train_acc_data, test_loss_data, test_acc_data
   
