@@ -17,9 +17,11 @@ def my_model(SEED, TRAIN_SIZE, TEST_SIZE, N_QUBITS, N_PARAMS_B, LR, N_EPOCHS,tra
   
   # The block defines a variational quantum circuit that takes the position of tensors in the circuit
   def block(weights,wires):
-    qml.RX(weights[0], wires=wires[0])
-    qml.RY(weights[1], wires=wires[1])
-    qml.CNOT(wires=wires)
+    qml.RZ(weights[0], wires=wires[0])
+    qml.RZ(weights[1], wires=wires[1])
+    qml.RX(weights[2], wires=wires[0])
+    qml.RY(weights[3], wires=wires[1])
+    qml.CZ(wires=wires)
   
   # Definition of the quantum circuit
   # x : features from the jet structure
@@ -137,6 +139,10 @@ def my_model(SEED, TRAIN_SIZE, TEST_SIZE, N_QUBITS, N_PARAMS_B, LR, N_EPOCHS,tra
   plt.savefig(fname)
   plt.clf()
   
+  roc_d = {'FPR': fpr, 'TPR': tpr, 'Threshold': threshold, 'area': auc}
+  frame = pd.DataFrame(roc_d)
+  frame.to_csv('mps_roc_data.csv', index=False)
+  
   return train_loss_data, train_acc_data, test_loss_data, test_acc_data
   
 def run_model():
@@ -145,7 +151,7 @@ def run_model():
   TRAIN_SIZE = 20000 
   TEST_SIZE = 10000
   N_QUBITS = 16   
-  N_PARAMS_B = 2
+  N_PARAMS_B = 4
   LR=1e-2 
   N_EPOCHS = 3000
   
@@ -171,7 +177,7 @@ def run_model():
   
   d = {'Epochs': ep, 'Train Loss': train_loss, 'Train Accuracy':train_acc, 'Test Loss':test_loss, 'Test Accuracy':test_acc}
   frame = pd.DataFrame(d)
-  frame.to_csv('mps_loss_accuracy_data', index=False)
+  frame.to_csv('mps_loss_accuracy_data.csv', index=False)
   
 run_model()
 
