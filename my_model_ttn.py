@@ -17,10 +17,10 @@ def my_model(SEED, TRAIN_SIZE, TEST_SIZE, N_QUBITS, N_PARAMS_B, LR, N_EPOCHS,tra
   
   # The block defines a variational quantum circuit that takes the position of tensors in the circuit
   def block(weights,wires):
-    qml.RX(weights[0], wires=wires[0])
+    qml.RZ(weights[0], wires=wires[0])
     qml.RY(weights[1], wires=wires[1])
     qml.U1(weights[2],wires=wires[0])
-    qml.CNOT(wires=wires)
+    qml.CZ(wires=wires)
   
   # Definition of the quantum circuit
   # x : features from the jet structure
@@ -66,6 +66,7 @@ def my_model(SEED, TRAIN_SIZE, TEST_SIZE, N_QUBITS, N_PARAMS_B, LR, N_EPOCHS,tra
     opt_state = opt_update(stepid, grads, opt_state)
     return loss_value,acc_value, opt_state
   
+  @jax.jit
   def test_step(final_state,test_f,test_t):
     current_w = get_params(final_state)
     loss_value, grads = jax.value_and_grad(loss_fn,argnums=0)(current_w,test_f,test_t)
@@ -123,7 +124,13 @@ def my_model(SEED, TRAIN_SIZE, TEST_SIZE, N_QUBITS, N_PARAMS_B, LR, N_EPOCHS,tra
   print(f"{i+1}\t{test_loss_data:.3f}\t{test_acc_data*100:.2f}%")
   
   # -------------------------- ROC curve -------------------------- #
-  predictions = circuit(test_features,get_params(final_state))
+  
+  depth = int(len(x) / batch_size)
+  new_test_features = np.split(test_features,depth)
+  ps = np.array(TEST_SIZE)
+  for i in range(depth)
+    ps[i] = circuit(test_features,get_params(final_state))
+  predictions = np.reshape(ps, (ps.shape[0]*ps.shape[1], ps.shape[2])) # Convert 3D array to 2D array  
   fpr, tpr, threshold = roc_curve(test_target,predictions)
   auc = roc_auc_score(test_target,predictions)
   
@@ -137,13 +144,17 @@ def my_model(SEED, TRAIN_SIZE, TEST_SIZE, N_QUBITS, N_PARAMS_B, LR, N_EPOCHS,tra
   plt.savefig(fname)
   plt.clf()
   
+  roc_d = {'FPR': fpr, 'TPR': tpr, 'Threshold': threshold, 'area': auc}
+  frame = pd.DataFrame(roc_d)
+  frame.to_csv('ttn_roc_data.csv', index=False)
+  
   return train_loss_data, train_acc_data, test_loss_data, test_acc_data
   
 def run_model():
   
   SEED=0      
-  TRAIN_SIZE = 20000 
-  TEST_SIZE = 10000
+  TRAIN_SIZE = 10000 
+  TEST_SIZE = 5000
   N_QUBITS = 16   
   N_PARAMS_B = 3
   LR=1e-2 
@@ -171,7 +182,7 @@ def run_model():
   plot_2 = ax2.plot(ep, train_acc, color = 'green') 
   ax2.tick_params(axis ='Accuracy', labelcolor = 'green')
   plt.title("Tree Tensor Network Architecture Loss and Accuracy")
-  file_name = 'mps_full_training'+str(TRAIN_SIZE)+'_testing'+str(TEST_SIZE)+'.png'
+  file_name = 'ttn_full_training'+str(TRAIN_SIZE)+'_testing'+str(TEST_SIZE)+'.png'
   plt.savefig(file_name) 
   
   d = {'Epochs': ep, 'Train Loss': train_loss, 'Train Accuracy':train_acc, 'Test Loss':test_loss, 'Test Accuracy':test_acc}
