@@ -132,7 +132,7 @@ def my_model(SEED, TRAIN_SIZE, TEST_SIZE, N_QUBITS, N_LAYERS, LR, N_EPOCHS,train
   
   roc_d = {'FPR': fpr, 'TPR': tpr, 'Threshold': threshold, 'area': auc}
   frame = pd.DataFrame(roc_d)
-  frame.to_csv('mps_roc_data.csv', index=False)
+  frame.to_csv('strong_roc_data.csv', index=False)
   
   return train_loss_data, train_acc_data, test_loss_data, test_acc_data
   
