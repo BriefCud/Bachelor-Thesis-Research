@@ -84,7 +84,7 @@ def my_model(SEED, TRAIN_SIZE, TEST_SIZE, N_QUBITS, N_PARAMS_B, LR, N_EPOCHS,tra
   
   train_loss_data = np.zeros(N_EPOCHS)
   train_acc_data = np.zeros(N_EPOCHS)
-  batch_size = 100
+  batch_size = 200
   print("Training...")
   print("Epoch\tLoss\tAccuracy")
   for i in range(N_EPOCHS):
@@ -125,7 +125,12 @@ def my_model(SEED, TRAIN_SIZE, TEST_SIZE, N_QUBITS, N_PARAMS_B, LR, N_EPOCHS,tra
   print(f"{i+1}\t{test_loss_data:.3f}\t{test_acc_data*100:.2f}%")
   
   # -------------------------- ROC curve -------------------------- #
-  predictions = circuit(test_features,get_params(final_state))
+  depth = int(len(x) / batch_size)
+  new_test_features = np.split(test_features,depth)
+  ps = np.array(depth)
+  for i in range(depth)
+    ps[i] = circuit(new_test_features[i],get_params(final_state))
+  predictions = np.reshape(ps, (ps.shape[0]*ps.shape[1], ps.shape[2])) # Convert 3D array to 2D array
   fpr, tpr, threshold = roc_curve(test_target,predictions)
   auc = roc_auc_score(test_target,predictions)
   
