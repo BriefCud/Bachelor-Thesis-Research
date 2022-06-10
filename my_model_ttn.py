@@ -113,7 +113,7 @@ def Train_Model(x, y):
       print(f"{i+1}\t{loss_data[i]:.3f}\t{acc_data[i]*100:.2f}%")
       np.save("ttn_w/ttn_weights_epcoh_"+ str(i+1) +".npy", get_params(opt_state))
    
-  file_weights = "ttn_w/final_mps_weights.npy"
+  file_weights = "ttn_w/final_ttn_weights.npy"
   np.save(file_weights, get_params(opt_state))
 
   return opt_state, loss_data, acc_data
