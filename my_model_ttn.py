@@ -1,6 +1,7 @@
 # Imports
 import numpy as np
 import pandas as pd
+import os
 import pennylane as qml
 import matplotlib.pyplot as plt
 from dataset16 import load_dataset as ld_full
@@ -79,8 +80,7 @@ def Train_Step(stepid, opt_state,train_f,train_t):
   return loss_value,acc_value, opt_state
 
 @jax.jit
-def Test_Step(final_state,test_f,test_t):
-  current_w = get_params(final_state)
+def Test_Step(current_w,test_f,test_t):
   loss_value, grads = jax.value_and_grad(Loss,argnums=0)(current_w,test_f,test_t)
   acc_value = Accuracy(current_w,test_f,test_t)
   return loss_value, acc_value
@@ -118,7 +118,7 @@ def Train_Model(x, y):
 
   return opt_state, loss_data, acc_data
 
-def Test_Model(final_state, x, y):
+def Test_Model(w, x, y):
   print("Testing...")  
   print("\tLoss\tAccuracy")
   # Batch and shuffle the data for ever epoch
@@ -127,7 +127,7 @@ def Test_Model(final_state, x, y):
   acc_temp = np.zeros(chunks)
 
   for j in range(chunks):
-    loss_temp[j],acc_temp[j] = Test_Step(final_state, test_f[j], test_t[j])
+    loss_temp[j],acc_temp[j] = Test_Step(w, test_f[j], test_t[j])
 
   loss_data = np.average(loss_temp)
   acc_data = np.average(acc_temp)
@@ -136,12 +136,12 @@ def Test_Model(final_state, x, y):
 
   return loss_data, acc_data
 
-def Plot_ROC(final_state,x,y):
+def Plot_ROC(w,x,y):
   depth = int(len(x) / BATCH_SIZE)
   new_x = np.split(x,depth)
   ps = np.array(TEST_SIZE)
   for i in range(depth):
-    ps[i] = circuit(new_x[i],get_params(final_state))
+    ps[i] = circuit(new_x[i],w)
   predictions = np.reshape(ps, (ps.shape[0]*ps.shape[1], ps.shape[2])) # Convert 3D array to 2D array  
   fpr, tpr, threshold = roc_curve(y,predictions)
   auc = roc_auc_score(y,predictions)
@@ -177,11 +177,25 @@ def Plot_Loss_and_Acc(ep,loss,acc):
 def Run_Model():
   # Loads the dataset (already preprocessed... see dataset.py)
   train_features,train_target,test_features,test_target = ld_full(TRAIN_SIZE,TEST_SIZE,SEED)
-
-  final_state, train_loss, train_acc = Train_Model(train_features, train_target)
-  test_loss, test_acc = Test_Model(final_state, test_features, test_target)
-  Plot_ROC(final_state,test_features,test_target)
+  
+  path = "/home/leonidas/example-qml4btag/ttn_w"
+  weights_files = os.scandir(path) # Get the .npy weight files
+  with weights_files as entries:
+    for entry in entries:
+        print(entry.name)
+  print("Please Choose a file from above to load the weights for the TTN model, otherwise press the space bar, then enter to pass this stage.")
+  w_f = input("Enter file name:  ")
+  if (w_f != " "):
+    weights = np.load(path+"/"+w_f)
+  else:
+    final_state, train_loss, train_acc = Train_Model(train_features, train_target)
+    weights = get_params(final_state)
+    Plot_Loss_and_Acc(ep,train_loss,train_acc)
+    
+  test_loss, test_acc = Test_Model(weights, test_features, test_target)
+  Plot_ROC(weights,test_features,test_target)
   ep = np.linspace(1,N_EPOCHS,num=N_EPOCHS)
+  
 
   d = {'Epochs': ep, 'Train Loss': train_loss, 'Train Accuracy':train_acc, 'Test Loss':test_loss, 'Test Accuracy':test_acc}
   frame = pd.DataFrame(d)
