@@ -54,12 +54,12 @@ def Circuit(x,w):
 
 # Simple MSE loss function
 def Loss(w,x,y):
-  pred = circuit(x,w)
+  pred = Circuit(x,w)
   return jax.numpy.mean((pred - y) ** 2)
 
 # Simple binary accuracy function
 def Accuracy(w,x,y):
-  pred = circuit(x,w)
+  pred = Circuit(x,w)
   return jax.numpy.mean(jax.numpy.sign(pred) == y)
 
 # Weights are initialized randomly
@@ -99,7 +99,7 @@ def Train_Model(x, y):
   for i in range(N_EPOCHS):
     
     # Batch and shuffle the data for ever epoch
-    train_f, train_t, chunks = Batch_and_Shuffle(x, y, BATCH_SIZE)
+    train_f, train_t, chunks = Batch_and_Shuffle(x, y)
     loss_temp = np.zeros(chunks)
     acc_temp = np.zeros(chunks)
 
@@ -122,7 +122,7 @@ def Test_Model(w, x, y):
   print("Testing...")  
   print("\tLoss\tAccuracy")
   # Batch and shuffle the data for ever epoch
-  test_f, test_t, chunks = Batch_and_Shuffle(x, y, BATCH_SIZE)
+  test_f, test_t, chunks = Batch_and_Shuffle(x, y)
   loss_temp = np.zeros(chunks)
   acc_temp = np.zeros(chunks)
 
