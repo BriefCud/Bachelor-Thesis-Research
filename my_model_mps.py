@@ -141,7 +141,7 @@ def Plot_ROC(w,x,y):
   new_x = np.split(x,depth)
   ps = np.array(TEST_SIZE)
   for i in range(depth):
-    ps[i] = circuit(new_x[i],w)
+    ps[i] = Circuit(new_x[i],w)
   predictions = np.reshape(ps, (ps.shape[0]*ps.shape[1], ps.shape[2])) # Convert 3D array to 2D array  
   fpr, tpr, threshold = roc_curve(y,predictions)
   auc = roc_auc_score(y,predictions)
