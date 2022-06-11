@@ -46,12 +46,12 @@ def Circuit(x,w):
 
 # Simple MSE loss function
 def Loss(w,x,y):
-  pred = circuit(x,w)
+  pred = Circuit(x,w)
   return jax.numpy.mean((pred - y) ** 2)
 
 # Simple binary accuracy function
 def Accuracy(w,x,y):
-  pred = circuit(x,w)
+  pred = Circuit(x,w)
   return jax.numpy.mean(jax.numpy.sign(pred) == y)
 
 # The ADAM optimizer is initialized
@@ -87,7 +87,7 @@ def Train_Model(opt_state,x, y):
   for i in range(N_EPOCHS):
     
     # Batch and shuffle the data for ever epoch
-    train_f, train_t, chunks = Batch_and_Shuffle(x, y, BATCH_SIZE)
+    train_f, train_t, chunks = Batch_and_Shuffle(x, y)
     loss_temp = np.zeros(chunks)
     acc_temp = np.zeros(chunks)
 
@@ -111,7 +111,7 @@ def Test_Model(w, x, y):
   print("Testing...")  
   print("\tLoss\tAccuracy")
   # Batch and shuffle the data for ever epoch
-  test_f, test_t, chunks = Batch_and_Shuffle(x, y, BATCH_SIZE)
+  test_f, test_t, chunks = Batch_and_Shuffle(x, y)
   loss_temp = np.zeros(chunks)
   acc_temp = np.zeros(chunks)
 
@@ -130,7 +130,7 @@ def Plot_ROC(w,x,y,layer):
   new_x = np.split(x,depth)
   ps = np.array(TEST_SIZE)
   for i in range(depth):
-    ps[i] = circuit(new_x[i],w)
+    ps[i] = Circuit(new_x[i],w)
   predictions = np.reshape(ps, (ps.shape[0]*ps.shape[1], ps.shape[2])) # Convert 3D array to 2D array  
   fpr, tpr, threshold = roc_curve(y,predictions)
   auc = roc_auc_score(y,predictions)
