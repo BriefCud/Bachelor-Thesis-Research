@@ -187,16 +187,22 @@ def Run_Model():
   w_f = input("Enter file name:  ")
   if (w_f != " "):
     weights = np.load(path+"/"+w_f)
+    test_loss, test_acc = Test_Model(weights, test_features, test_target)
+    Plot_ROC(weights,test_features,test_target)
   else:
     final_state, train_loss, train_acc = Train_Model(train_features, train_target)
     weights = get_params(final_state)
     ep = np.linspace(1,N_EPOCHS,num=N_EPOCHS)
     Plot_Loss_and_Acc(ep,train_loss,train_acc)
     
-  test_loss, test_acc = Test_Model(weights, test_features, test_target)
-  Plot_ROC(weights,test_features,test_target)
+    test_loss, test_acc = Test_Model(weights, test_features, test_target)
+    Plot_ROC(weights,test_features,test_target)
+    
+    d = {'Epochs': ep, 'Train Loss': train_loss, 'Train Accuracy':train_acc, 'Test Loss':test_loss, 'Test Accuracy':test_acc}
+    frame = pd.DataFrame(d)
+    frame.to_csv('ttn_loss_accuracy_data', index=False)
+    
+  
   
 
-  d = {'Epochs': ep, 'Train Loss': train_loss, 'Train Accuracy':train_acc, 'Test Loss':test_loss, 'Test Accuracy':test_acc}
-  frame = pd.DataFrame(d)
-  frame.to_csv('ttn_loss_accuracy_data', index=False)
+  
