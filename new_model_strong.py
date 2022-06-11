@@ -177,6 +177,8 @@ def Run_Model():
   w_f = input("Enter file name:  ")
   if (w_f != " "):
     weights = np.load(path+"/"+w_f)
+    test_loss, test_acc = Test_Model(weights, test_features, test_target)
+    Plot_ROC(weights,test_features,test_target, 0)
   else:
     max_layers = 8
     train_loss_data = np.zeros([max_layers,TRAIN_SIZE,16])
@@ -201,5 +203,3 @@ def Run_Model():
       file_name = 'strong_loss_accuracy_data_with'+str(i+1)+'layers.csv'
       frame.to_csv(file_name, index=False)
   
-  test_loss, test_acc = Test_Model(weights, test_features, test_target)
-  Plot_ROC(weights,test_features,test_target, 0)
