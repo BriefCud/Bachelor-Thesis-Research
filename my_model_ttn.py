@@ -96,6 +96,7 @@ def Train_Model(x, y):
   acc_data = np.zeros(N_EPOCHS)
   print("Training...")
   print("Epoch\tLoss\tAccuracy")
+  step=0
   for i in range(N_EPOCHS):
     
     # Batch and shuffle the data for ever epoch
@@ -104,7 +105,8 @@ def Train_Model(x, y):
     acc_temp = np.zeros(chunks)
 
     for j in range(chunks):
-      loss_temp[j],acc_temp[j], opt_state = Train_Step(i, opt_state, train_f[j], train_t[j])
+      loss_temp[j],acc_temp[j], opt_state = Train_Step(step, opt_state, train_f[j], train_t[j])
+      step+=1
 
     loss_data[i] = np.average(loss_temp)
     acc_data[i] = np.average(acc_temp)
