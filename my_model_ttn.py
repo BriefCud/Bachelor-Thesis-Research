@@ -50,7 +50,7 @@ def Block(weights,wires):
 def Circuit(x,w):
   qml.AngleEmbedding(x,wires=range(N_QUBITS))   # Features x are embedded in rotation angles
   qml.TTN(wires=range(N_QUBITS), n_block_wires=2,block=Block, n_params_block=N_PARAMS_B, template_weights=w) # Variational layer
-  return qml.expval(qml.PauliZ(0)) # Expectation value of the \sigma_z operator on the 1st qubit
+  return qml.expval(qml.PauliZ(N_QUBITS-1)) # Expectation value of the \sigma_z operator on the 1st qubit
 
 # Simple MSE loss function
 def Loss(w,x,y):
