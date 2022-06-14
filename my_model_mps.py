@@ -50,7 +50,7 @@ def Block(weights,wires):
 def Circuit(x,w):
   qml.AngleEmbedding(x,wires=range(N_QUBITS))   # Features x are embedded in rotation angles
   qml.MPS(wires=range(N_QUBITS), n_block_wires=2,block=Block, n_params_block=N_PARAMS_B, template_weights=w) # Variational layer
-  return qml.expval(qml.PauliZ(0)) # Expectation value of the \sigma_z operator on the 1st qubit
+  return qml.expval(qml.PauliZ(N_QUBITS-1)) # Expectation value of the \sigma_z operator on the 1st qubit
 
 # Simple MSE loss function
 def Loss(w,x,y):
@@ -92,26 +92,22 @@ def Batch_and_Shuffle(x,y):
   return np.split(data[:,0:N_QUBITS],z), np.split(data[:,-1],z),z
 
 def Train_Model(x, y):
-  loss_data = np.zeros(N_EPOCHS)
-  acc_data = np.zeros(N_EPOCHS)
+  z = int(len(x)/BATCH_SIZE)
+  loss_data = np.zeros(N_EPOCHS*z)
+  acc_data = np.zeros(N_EPOCHS*z)
   print("Training...")
   print("Epoch\tLoss\tAccuracy")
   step=0
   for i in range(N_EPOCHS):
     # Batch and shuffle the data for ever epoch
     train_f, train_t, chunks = Batch_and_Shuffle(x, y)
-    loss_temp = np.zeros(chunks)
-    acc_temp = np.zeros(chunks)
 
     for j in range(chunks):
-      loss_temp[j],acc_temp[j], opt_state = Train_Step(step, opt_state, train_f[j], train_t[j])
+      loss_data[step],acc_data[step], opt_state = Train_Step(step, opt_state, train_f[j], train_t[j])
       step+=1
 
-    loss_data[i] = np.average(loss_temp)
-    acc_data[i] = np.average(acc_temp)
-
     if (i+1) % 100 == 0:
-      print(f"{i+1}\t{loss_data[i]:.3f}\t{acc_data[i]*100:.2f}%")
+      print(f"{i+1}\t{loss_data[sgtep-1]:.3f}\t{acc_data[step-1]*100:.2f}%")
       np.save("mps_w/mps_weights_epcoh_"+ str(i+1) +".npy", get_params(opt_state))
    
   file_weights = "mps_w/final_mps_weights.npy"
