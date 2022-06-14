@@ -101,18 +101,13 @@ def Train_Model(x, y):
     
     # Batch and shuffle the data for ever epoch
     train_f, train_t, chunks = Batch_and_Shuffle(x, y)
-    loss_temp = np.zeros(chunks)
-    acc_temp = np.zeros(chunks)
 
     for j in range(chunks):
-      loss_temp[j],acc_temp[j], opt_state = Train_Step(step, opt_state, train_f[j], train_t[j])
+      loss_data[step],acc_data[step], opt_state = Train_Step(step, opt_state, train_f[j], train_t[j])
       step+=1
 
-    loss_data[i] = np.average(loss_temp)
-    acc_data[i] = np.average(acc_temp)
-
     if (i+1) % 100 == 0:
-      print(f"{i+1}\t{loss_data[i]:.3f}\t{acc_data[i]*100:.2f}%")
+      print(f"{i+1}\t{loss_data[step-1]:.3f}\t{acc_data[step-1]*100:.2f}%")
       np.save("ttn_w/ttn_weights_epcoh_"+ str(i+1) +".npy", get_params(opt_state))
    
   file_weights = "ttn_w/final_ttn_weights.npy"
@@ -139,17 +134,27 @@ def Test_Model(w, x, y):
   return loss_data, acc_data
 
 def Plot_ROC(w,x,y):
-  depth = int(len(x) / BATCH_SIZE)
-  new_x = np.split(x,depth)
-  ps = np.array(TEST_SIZE)
-  for i in range(depth):
+  z = int(len(x) / BATCH_SIZE)
+  new_x = np.split(x,z)
+  ps = np.zeros([z,BATCH_SIZE])
+  for i in range(z):
     ps[i] = Circuit(new_x[i],w)
-  predictions = np.reshape(ps, (ps.shape[0]*ps.shape[1], ps.shape[2])) # Convert 3D array to 2D array  
+  predictions = np.reshape(ps, (ps.shape[0]*ps.shape[1])) # Convert 2D array to 1D array  
   fpr, tpr, threshold = roc_curve(y,predictions)
   auc = roc_auc_score(y,predictions)
+  df_auc = np.ones(len(fpr))*auc
+  
+  # Get data predictions from the XGBoost to compare ROC curves
+  xgb_csv =  pd.read_csv('/data/test_withxgb.csv')
+  xgb_pred = xgb_csv['XGB_PRED'] 
+  xgb_target = xgb_csv['Jet_LABEL']*2-1
+  xgb_fpr,xgb_tpr,xgb_threshold = roc_curve(xgb_target,xgb_pred)
+  xgb_auc = roc_auc_score(xgb_target,xgb_pred)
+
   
   plt.plot([0, 1], [0, 1], color="navy", linestyle="--")
   plt.plot(fpr,tpr,label="ROC QML,TTN(area = %0.2f)" % auc)
+  plt.plot(xgb_fpr,xgb_tpr,label="ROC XGBoost(area = %0.2f)" % xgb_auc)
   plt.xlabel("False Positive Rate")
   plt.ylabel("True Positive Rate")
   plt.title("Receiver Operating Characteristic")
@@ -158,7 +163,7 @@ def Plot_ROC(w,x,y):
   plt.savefig(fname)
   plt.clf()
   
-  roc_d = {'FPR': fpr, 'TPR': tpr, 'Threshold': threshold, 'Area': auc}
+  roc_d = {'FPR': fpr, 'TPR': tpr, 'Threshold': threshold, 'Area': df_auc}
   frame = pd.DataFrame(roc_d)
   frame.to_csv('ttn_roc_data.csv', index=False)
 
@@ -167,11 +172,11 @@ def Plot_Loss_and_Acc(ep,loss,acc):
   ax1.set_xlabel('# of Epochs') 
   ax1.set_ylabel('Loss', color = 'black') 
   plot_1 = ax1.plot(ep, loss, color = 'black') 
-  ax1.tick_params(axis ='Loss', labelcolor = 'black')
+  ax1.tick_params(axis ='y', labelcolor = 'black')
   ax2 = ax1.twinx() 
   ax2.set_ylabel('Accuracy', color = 'green') 
   plot_2 = ax2.plot(ep, acc, color = 'green') 
-  ax2.tick_params(axis ='Accuracy', labelcolor = 'green')
+  ax2.tick_params(axis ='y', labelcolor = 'green')
   plt.title("Tree Tensor Network Architecture Loss and Accuracy")
   file_name = 'ttn_full_training'+str(TRAIN_SIZE)+'_testing'+str(TEST_SIZE)+'.png'
   plt.savefig(file_name) 
