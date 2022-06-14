@@ -142,9 +142,18 @@ def Plot_ROC(w,x,y):
   predictions = np.reshape(ps, (ps.shape[0]*ps.shape[1], ps.shape[2])) # Convert 3D array to 2D array  
   fpr, tpr, threshold = roc_curve(y,predictions)
   auc = roc_auc_score(y,predictions)
+  df_auc = np.ones(len(fpr))*auc
+  
+  # Get data predictions from the XGBoost to compare ROC curves
+  xgb_csv =  pd.read_csv('/data/test_withxgb.csv')
+  xgb_pred = xgb_csv['XGB_PRED'] 
+  xgb_target = xgb_csv['Jet_LABEL']*2-1
+  xgb_fpr,xgb_tpr,xgb_threshold = roc_curve(xgb_target,xgb_pred)
+  xgb_auc = roc_auc_score(xgb_target,xgb_pred)
   
   plt.plot([0, 1], [0, 1], color="navy", linestyle="--")
   plt.plot(fpr,tpr,label="ROC QML,MPS(area = %0.2f)" % auc)
+  plt.plot(xgb_fpr,xgb_tpr,label="ROC XGBoost(area = %0.2f)" % xgb_auc)
   plt.xlabel("False Positive Rate")
   plt.ylabel("True Positive Rate")
   plt.title("Receiver Operating Characteristic")
@@ -153,7 +162,7 @@ def Plot_ROC(w,x,y):
   plt.savefig(fname)
   plt.clf()
   
-  roc_d = {'FPR': fpr, 'TPR': tpr, 'Threshold': threshold, 'Area': auc}
+  roc_d = {'FPR': fpr, 'TPR': tpr, 'Threshold': threshold, 'Area': df_auc}
   frame = pd.DataFrame(roc_d)
   frame.to_csv('mps_roc_data.csv', index=False)
 
@@ -162,11 +171,11 @@ def Plot_Loss_and_Acc(ep,loss,acc):
   ax1.set_xlabel('# of Epochs') 
   ax1.set_ylabel('Loss', color = 'black') 
   plot_1 = ax1.plot(ep, loss, color = 'black') 
-  ax1.tick_params(axis ='Loss', labelcolor = 'black')
+  ax1.tick_params(axis ='y', labelcolor = 'black')
   ax2 = ax1.twinx() 
   ax2.set_ylabel('Accuracy', color = 'green') 
   plot_2 = ax2.plot(ep, acc, color = 'green') 
-  ax2.tick_params(axis ='Accuracy', labelcolor = 'green')
+  ax2.tick_params(axis ='y', labelcolor = 'green')
   plt.title("Matrix Product State Architecture Loss and Accuracy")
   file_name = 'mps_full_training'+str(TRAIN_SIZE)+'_testing'+str(TEST_SIZE)+'.png'
   plt.savefig(file_name) 
