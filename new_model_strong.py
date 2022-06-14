@@ -136,9 +136,18 @@ def Plot_ROC(w,x,y,layer):
   predictions = np.reshape(ps, (ps.shape[0]*ps.shape[1], ps.shape[2])) # Convert 3D array to 2D array  
   fpr, tpr, threshold = roc_curve(y,predictions)
   auc = roc_auc_score(y,predictions)
+  df_auc = np.ones(len(fpr))*auc
+  
+  # Get data predictions from the XGBoost to compare ROC curves
+  xgb_csv =  pd.read_csv('/data/test_withxgb.csv')
+  xgb_pred = xgb_csv['XGB_PRED'] 
+  xgb_target = xgb_csv['Jet_LABEL']*2-1
+  xgb_fpr,xgb_tpr,xgb_threshold = roc_curve(xgb_target,xgb_pred)
+  xgb_auc = roc_auc_score(xgb_target,xgb_pred)
   
   plt.plot([0, 1], [0, 1], color="navy", linestyle="--")
   plt.plot(fpr,tpr,label="ROC QML,Strong(area = %0.2f)" % auc)
+  plt.plot(xgb_fpr,xgb_tpr,label="ROC XGBoost(area = %0.2f)" % xgb_auc)
   plt.xlabel("False Positive Rate")
   plt.ylabel("True Positive Rate")
   plt.title("Receiver Operating Characteristic")
@@ -147,9 +156,9 @@ def Plot_ROC(w,x,y,layer):
   plt.savefig(fname)
   plt.clf()
   
-  roc_d = {'FPR': fpr, 'TPR': tpr, 'Threshold': threshold, 'Area': auc}
+  roc_d = {'FPR': fpr, 'TPR': tpr, 'Threshold': threshold, 'Area': df_auc}
   frame = pd.DataFrame(roc_d)
-  file_name = 'strong_roc_data_with_'+str(layer)+'layers.csv'
+  file_name = 'strong_data/strong_roc_data_with_'+str(layer)+'layers.csv'
   frame.to_csv(file_name, index=False)
 
 def Plot_Loss_and_Acc(ep,loss,acc,layer):
@@ -163,7 +172,7 @@ def Plot_Loss_and_Acc(ep,loss,acc,layer):
   plot_2 = ax2.plot(ep, acc, color = 'green') 
   ax2.tick_params(axis ='Accuracy', labelcolor = 'green')
   plt.title("Strongly Entangling Layers("+str(layer)+") Architecture Loss and Accuracy")
-  file_name = 'strong_full_training'+str(TRAIN_SIZE)+'_testing'+str(TEST_SIZE)+'.png'
+  file_name = 'strong_data/strong_full_training'+str(TRAIN_SIZE)+'_testing'+str(TEST_SIZE)+'.png'
   plt.savefig(file_name) 
 
 def Run_Model():
