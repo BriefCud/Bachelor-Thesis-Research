@@ -134,12 +134,12 @@ def Test_Model(w, x, y):
   return loss_data, acc_data
 
 def Plot_ROC(w,x,y):
-  depth = int(len(x) / BATCH_SIZE)
-  new_x = np.split(x,depth)
-  ps = np.array(TEST_SIZE)
+  z = int(len(x) / BATCH_SIZE)
+  new_x = np.split(x,z)
+  ps = np.array(z,BATCH_SIZE)
   for i in range(depth):
     ps[i] = Circuit(new_x[i],w)
-  predictions = np.reshape(ps, (ps.shape[0]*ps.shape[1], ps.shape[2])) # Convert 3D array to 2D array  
+  predictions = np.reshape(ps, (z*BATCH_SIZE)) # Convert 2D array to 1D array  
   fpr, tpr, threshold = roc_curve(y,predictions)
   auc = roc_auc_score(y,predictions)
   df_auc = np.ones(len(fpr))*auc
@@ -198,13 +198,14 @@ def Run_Model():
   else:
     final_state, train_loss, train_acc = Train_Model(train_features, train_target)
     weights = get_params(final_state)
-    ep = np.linspace(1,N_EPOCHS,num=N_EPOCHS)
+    ep = np.linspace(1,len(train_loss),num=len(train_loss))
     Plot_Loss_and_Acc(ep,train_loss,train_acc)
     
     test_loss, test_acc = Test_Model(weights, test_features, test_target)
     Plot_ROC(weights,test_features,test_target)
     
-    d = {'Epochs': ep, 'Train Loss': train_loss, 'Train Accuracy':train_acc, 'Test Loss':test_loss, 'Test Accuracy':test_acc}
+    d_t = np.ones(len(train_loss))
+    d = {'Epochs': ep, 'Train Loss': train_loss, 'Train Accuracy':train_acc, 'Test Loss':d_t*test_loss, 'Test Accuracy':d_t*test_acc}
     frame = pd.DataFrame(d)
     frame.to_csv('mps_loss_accuracy_data', index=False)
     
