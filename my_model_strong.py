@@ -15,12 +15,12 @@ from sklearn.metrics import roc_curve, roc_auc_score
 # ------ Constants ------#
 
 SEED=0      
-TRAIN_SIZE = 10000 
-TEST_SIZE = 5000
+TRAIN_SIZE = 32*50 
+TEST_SIZE = 32*20
 N_QUBITS = 16   
 LR=1e-2 
-N_EPOCHS = 3000
-BATCH_SIZE = 200
+N_EPOCHS = 1500
+BATCH_SIZE = 32
 
 #------------------------#
 
@@ -99,7 +99,7 @@ def Train_Model(opt_state,x, y):
     loss_data[i] = np.average(loss_temp)
     acc_data[i] = np.average(acc_temp)
 
-    if (i+1) % 100 == 0:
+    if (i+1) % 500 == 0:
       print(f"{i+1}\t{loss_data[i]:.3f}\t{acc_data[i]*100:.2f}%")
       np.save("strong_w/strong_weights_epcoh_"+ str(i+1) +".npy", get_params(opt_state))
   
@@ -161,19 +161,18 @@ def Plot_ROC(w,x,y,layer):
   file_name = 'strong_data/strong_roc_data_with_'+str(layer)+'layers.csv'
   frame.to_csv(file_name, index=False)
 
-def Plot_Loss_and_Acc(ep,loss,acc,layer):
+def Plot_Loss_and_Acc(ep,loss,acc,title,file_name):
   fig, ax1 = plt.subplots() 
   ax1.set_xlabel('# of Epochs') 
   ax1.set_ylabel('Loss', color = 'black') 
   plot_1 = ax1.plot(ep, loss, color = 'black') 
-  ax1.tick_params(axis ='Loss', labelcolor = 'black')
+  ax1.tick_params(axis ='y', labelcolor = 'black')
   ax2 = ax1.twinx() 
   ax2.set_ylabel('Accuracy', color = 'green') 
   plot_2 = ax2.plot(ep, acc, color = 'green') 
-  ax2.tick_params(axis ='Accuracy', labelcolor = 'green')
-  plt.title("Strongly Entangling Layers("+str(layer)+") Architecture Loss and Accuracy")
-  file_name = 'strong_data/strong_full_training'+str(TRAIN_SIZE)+'_testing'+str(TEST_SIZE)+'.png'
-  plt.savefig(file_name) 
+  ax2.tick_params(axis ='y', labelcolor = 'green')
+  plt.title(title)
+  plt.savefig(file_name)
 
 def Run_Model():
   # Loads the dataset (already preprocessed... see dataset.py)
@@ -192,8 +191,10 @@ def Run_Model():
     Plot_ROC(weights,test_features,test_target, 0)
   else:
     max_layers = 8
-    train_loss_data = np.zeros([max_layers,TRAIN_SIZE,16])
-    train_acc_data = np.zeros([max_layers,TRAIN_SIZE,16])
+    z_train = int(len(train_features)/BATCH_SIZE)
+    z_test = int(len(test_features)/BATCH_SIZE)    
+    train_loss_data = np.zeros([max_layers,N_EPOCHS])
+    train_acc_data = np.zeros([max_layers,N_EPOCHS])
     test_loss = np.zeros([max_layers])
     test_acc = np.zeros([max_layers])
     for i in range(max_layers):
@@ -203,8 +204,9 @@ def Run_Model():
 
       print("Training with "+str(i+1)+" layer(s)")
       weights, train_loss_data[i], train_acc_data[i] = Train_Model(opt_state, train_features, train_target)
-      ep = np.linspace(1,N_EPOCHS,num=N_EPOCHS)
-      Plot_Loss_and_Acc(ep,train_loss_data,train_acc_data,(i+1))
+      fig_name = 'strong_data/strong_full_layer'+str(i+1)+'_training'+str(TRAIN_SIZE)+'_testing'+str(TEST_SIZE)+'.png'
+      fig_title = "Strongly Entangling Layers("+str(i+1)+") Architecture Loss and Accuracy"
+      Plot_Loss_and_Acc(np.linspace(1,N_EPOCHS,num=N_EPOCHS),train_loss_data,train_acc_data,fig_title,fig_name)
 
       test_loss[i], test_acc[i] = Test_Model(weights, test_features, test_target)
       Plot_ROC(weights,test_features,test_target,(i+1))
@@ -213,4 +215,12 @@ def Run_Model():
       frame = pd.DataFrame(d)
       file_name = 'strong_loss_accuracy_data_with'+str(i+1)+'layers.csv'
       frame.to_csv(file_name, index=False)
+    
+    fig_name = 'strong_data/strong_full_training'+str(TRAIN_SIZE)+'_testing'+str(TEST_SIZE)+'.png'
+    fig_title = "Strongly Entangling Layers Architecture Loss and Accuracy"
+    Plot_Loss_and_Acc(np.linspace(1,max_layers,num=max_layers),test_loss_data,test_acc_data,fig_title,fig_name)
+      
   
+  plt.savefig(fname)
+      
+Run_Model()  
