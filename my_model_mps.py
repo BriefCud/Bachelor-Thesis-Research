@@ -179,6 +179,7 @@ def Plot_Loss_and_Acc(ep,loss,acc):
   plt.title("Matrix Product State Architecture Loss and Accuracy")
   file_name = 'mps_full_training'+str(TRAIN_SIZE)+'_testing'+str(TEST_SIZE)+'.png'
   plt.savefig(file_name) 
+  plt.clf()
 
 def Run_Model():
   # Loads the dataset (already preprocessed... see dataset.py)
