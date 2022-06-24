@@ -92,8 +92,11 @@ def Batch_and_Shuffle(x,y):
   return np.split(data[:,0:N_QUBITS],z), np.split(data[:,-1],z),z
 
 def Train_Model(x, y):
-  loss_data = np.zeros(N_EPOCHS)
-  acc_data = np.zeros(N_EPOCHS)
+  z = int(len(x) / BATCH_SIZE)
+  loss_step_data = np.zeros(N_EPOCHS*z)
+  acc_step_data = np.zeros(N_EPOCHS*z)
+  loss_epoch_data = np.zeros(N_EPOCHS)
+  acc_epoch_data = np.zeros(N_EPOCHS)
   print("Training...")
   print("Epoch\tLoss\tAccuracy")
   step=0
@@ -103,8 +106,12 @@ def Train_Model(x, y):
     train_f, train_t, chunks = Batch_and_Shuffle(x, y)
 
     for j in range(chunks):
-      loss_data[step],acc_data[step], opt_state = Train_Step(step, opt_state, train_f[j], train_t[j])
+      loss_step_data[step],acc_step_data[step], opt_state = Train_Step(step, opt_state, train_f[j], train_t[j])
       step+=1
+    
+    # TO DO
+    # implement arrays thta store data for each step and for each epoch.
+    loss_epoch_data[i] = np.mean(loss_step_data[((step-1)-chunks):(step-1)]) 
 
     if (i+1) % 100 == 0:
       print(f"{i+1}\t{loss_data[step-1]:.3f}\t{acc_data[step-1]*100:.2f}%")
