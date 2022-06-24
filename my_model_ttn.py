@@ -63,11 +63,11 @@ def Accuracy(w,x,y):
   return jax.numpy.mean(jax.numpy.sign(pred) == y)
 
 # Weights are initialized randomly
-weights = jax.random.uniform(jax.random.PRNGKey(SEED), (N_QUBITS-1, N_PARAMS_B))*jax.numpy.pi
+init_weights = jax.random.uniform(jax.random.PRNGKey(SEED), (N_QUBITS-1, N_PARAMS_B))*jax.numpy.pi
 
 # The ADAM optimizer is initialized
 opt_init, opt_update, get_params = adam(LR)
-opt_state = opt_init(weights)
+init_state = opt_init(init_weights)
 
 # Training step
 # This function is compiled Just-In-Time on the GPU
@@ -141,7 +141,7 @@ def Plot_Loss_and_Acc(ep,loss,acc,title,file_name,xlabel):
   plt.savefig(file_name)
   plt.clf()
 
-def Train_Model(x, y):
+def Train_Model(opt_state,x, y):
   z = int(len(x) / BATCH_SIZE)
   loss_step_data = np.zeros(N_EPOCHS*z)
   acc_step_data = np.zeros(N_EPOCHS*z)
@@ -209,10 +209,12 @@ def Run_Model():
     test_loss, test_acc = Test_Model(weights, test_features, test_target)
     Plot_ROC(weights,test_features,test_target)
   else:
-    final_state, train_loss, train_acc = Train_Model(train_features, train_target)
+    final_state, train_loss, train_acc = Train_Model(init_state,train_features, train_target)
     weights = get_params(final_state)
     ep = np.linspace(1,N_EPOCHS,num=N_EPOCHS)
-    Plot_Loss_and_Acc(ep,train_loss,train_acc)
+    title = 'Accurcy and Loss vs Eppch for TTN Model'
+    file_name = 'ttn_data/ttn_loss_acc_training'+str(TRAIN_SIZE)+'_testing'+str(TEST_SIZE)+'.png' 
+    Plot_Loss_and_Acc(ep,train_loss,train_acc,title,file_name,'Epoch')
     
     test_loss, test_acc = Test_Model(weights, test_features, test_target)
     Plot_ROC(weights,test_features,test_target)
