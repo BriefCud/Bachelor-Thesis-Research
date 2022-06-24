@@ -15,12 +15,12 @@ from sklearn.metrics import roc_curve, roc_auc_score
 # ------ Constants ------#
 
 SEED=0      
-TRAIN_SIZE = 10000 
-TEST_SIZE = 5000
+TRAIN_SIZE = 200*50
+TEST_SIZE = 200*100
 N_QUBITS = 16   
 N_PARAMS_B = 3
-LR=1e-2 
-N_EPOCHS = 3000
+LR=1e-3 
+N_EPOCHS = 1000
 BATCH_SIZE = 200
 
 #------------------------#
@@ -63,11 +63,11 @@ def Accuracy(w,x,y):
   return jax.numpy.mean(jax.numpy.sign(pred) == y)
 
 # Weights are initialized randomly
-weights = jax.random.uniform(jax.random.PRNGKey(SEED), (N_QUBITS-1, N_PARAMS_B))*jax.numpy.pi
+init_weights = jax.random.uniform(jax.random.PRNGKey(SEED), (N_QUBITS-1, N_PARAMS_B))*jax.numpy.pi
 
 # The ADAM optimizer is initialized
 opt_init, opt_update, get_params = adam(LR)
-opt_state = opt_init(weights)
+init_state = opt_init(init_weights)
 
 # Training step
 # This function is compiled Just-In-Time on the GPU
@@ -90,48 +90,6 @@ def Batch_and_Shuffle(x,y):
   data = np.column_stack([x,y])
   np.random.shuffle(data)
   return np.split(data[:,0:N_QUBITS],z), np.split(data[:,-1],z),z
-
-def Train_Model(x, y):
-  z = int(len(x)/BATCH_SIZE)
-  loss_data = np.zeros(N_EPOCHS*z)
-  acc_data = np.zeros(N_EPOCHS*z)
-  print("Training...")
-  print("Epoch\tLoss\tAccuracy")
-  step=0
-  for i in range(N_EPOCHS):
-    # Batch and shuffle the data for ever epoch
-    train_f, train_t, chunks = Batch_and_Shuffle(x, y)
-
-    for j in range(chunks):
-      loss_data[step],acc_data[step], opt_state = Train_Step(step, opt_state, train_f[j], train_t[j])
-      step+=1
-
-    if (i+1) % 100 == 0:
-      print(f"{i+1}\t{loss_data[sgtep-1]:.3f}\t{acc_data[step-1]*100:.2f}%")
-      np.save("mps_w/mps_weights_epcoh_"+ str(i+1) +".npy", get_params(opt_state))
-   
-  file_weights = "mps_w/final_mps_weights.npy"
-  np.save(file_weights, get_params(opt_state))
-
-  return opt_state, loss_data, acc_data
-
-def Test_Model(w, x, y):
-  print("Testing...")  
-  print("\tLoss\tAccuracy")
-  # Batch and shuffle the data for ever epoch
-  test_f, test_t, chunks = Batch_and_Shuffle(x, y)
-  loss_temp = np.zeros(chunks)
-  acc_temp = np.zeros(chunks)
-
-  for j in range(chunks):
-    loss_temp[j],acc_temp[j] = Test_Step(w, test_f[j], test_t[j])
-
-  loss_data = np.average(loss_temp)
-  acc_data = np.average(acc_temp)
-
-  print(f"\t{loss_data:.3f}\t{acc_data*100:.2f}%")
-
-  return loss_data, acc_data
 
 def Plot_ROC(w,x,y):
   z = int(len(x) / BATCH_SIZE)
@@ -166,20 +124,74 @@ def Plot_ROC(w,x,y):
   frame = pd.DataFrame(roc_d)
   frame.to_csv('mps_roc_data.csv', index=False)
 
-def Plot_Loss_and_Acc(ep,loss,acc):
-  fig, ax1 = plt.subplots() 
-  ax1.set_xlabel('# of Epochs') 
-  ax1.set_ylabel('Loss', color = 'black') 
-  plot_1 = ax1.plot(ep, loss, color = 'black') 
-  ax1.tick_params(axis ='y', labelcolor = 'black')
-  ax2 = ax1.twinx() 
-  ax2.set_ylabel('Accuracy', color = 'green') 
-  plot_2 = ax2.plot(ep, acc, color = 'green') 
-  ax2.tick_params(axis ='y', labelcolor = 'green')
-  plt.title("Matrix Product State Architecture Loss and Accuracy")
-  file_name = 'mps_full_training'+str(TRAIN_SIZE)+'_testing'+str(TEST_SIZE)+'.png'
-  plt.savefig(file_name) 
+def Plot_Loss_and_Acc(ep,loss,acc,title,file_name,xlabel):
+  figure, axis = plt.subplots(2, 1)
+
+  axis[0].plot(ep, acc)
+  axis[0].set_xlabel(xlabel, size=14)
+  axis[0].set_ylabel('Accuracy', size=14)
+
+  axis[1].plot(ep,loss)
+  axis[1].set_xlabel(xlabel, size=14)
+  axis[1].set_ylabel('Loss', size=14)
+
+  figure.suptitle(title)
+  plt.figure(figsize=(10,8))
+  # plt.savefig(file_name)
+  plt.show()
   plt.clf()
+
+def Train_Model(opt_state,x, y):
+  z = int(len(x) / BATCH_SIZE)
+  loss_step_data = np.zeros(N_EPOCHS*z)
+  acc_step_data = np.zeros(N_EPOCHS*z)
+  loss_epoch_data = np.zeros(N_EPOCHS)
+  acc_epoch_data = np.zeros(N_EPOCHS)
+  print("Training...")
+  print("Epoch\tLoss\tAccuracy")
+  step=0
+  for i in range(N_EPOCHS):
+    
+    # Batch and shuffle the data for ever epoch
+    train_f, train_t, chunks = Batch_and_Shuffle(x, y)
+
+    for j in range(chunks):
+      loss_step_data[step],acc_step_data[step], opt_state = Train_Step(step, opt_state, train_f[j], train_t[j])
+      step+=1
+    
+    loss_epoch_data[i] = np.mean(loss_step_data[step-chunks:step]) # get the mean of the loss for the chunk size
+    acc_epoch_data[i] = np.mean(acc_step_data[step-chunks:step])
+
+    if (i+1) % 100 == 0:
+      print(f"{i+1}\t{loss_epoch_data[i]:.3f}\t{acc_epoch-data[i]*100:.2f}%")
+      np.save("ttn_w/ttn_weights_epcoh_"+ str(i+1) +".npy", get_params(opt_state))
+   
+  file_weights = "ttn_w/final_ttn_weights.npy"
+  np.save(file_weights, get_params(opt_state))
+  
+  title = 'Accuracy and Loss vs Steps for MPS'
+  file_name = 'mps_data/mps_acc_loss_training'+str(TRAIN_SIZE)+'_testing'+str(TEST_SIZE)+'.png'
+  Plot_Loss_and_Acc(np.linspace(1,N_EPOCHS*z,num=N_EPOCHS*z),loss_step_data,acc_step_data,title,file_name,'Step')
+  
+  return opt_state, loss_epoch_data, acc_epoch_data
+
+def Test_Model(w, x, y):
+  print("Testing...")  
+  print("\tLoss\tAccuracy")
+  # Batch and shuffle the data for ever epoch
+  test_f, test_t, chunks = Batch_and_Shuffle(x, y)
+  loss_temp = np.zeros(chunks)
+  acc_temp = np.zeros(chunks)
+
+  for j in range(chunks):
+    loss_temp[j],acc_temp[j] = Test_Step(w, test_f[j], test_t[j])
+
+  loss_data = np.average(loss_temp)
+  acc_data = np.average(acc_temp)
+
+  print(f"\t{loss_data:.3f}\t{acc_data*100:.2f}%")
+
+  return loss_data, acc_data
 
 def Run_Model():
   # Loads the dataset (already preprocessed... see dataset.py)
@@ -197,10 +209,12 @@ def Run_Model():
     test_loss, test_acc = Test_Model(weights, test_features, test_target)
     Plot_ROC(weights,test_features,test_target)
   else:
-    final_state, train_loss, train_acc = Train_Model(train_features, train_target)
+    final_state, train_loss, train_acc = Train_Model(init_state,train_features, train_target)
     weights = get_params(final_state)
     ep = np.linspace(1,len(train_loss),num=len(train_loss))
-    Plot_Loss_and_Acc(ep,train_loss,train_acc)
+    title = 'Loss and Accuray vs Epoch for MPS model'
+    file_name = 'mps_data/mps_acc_loss_training'+str(TRAIN_SIZE)+'_testing'+str(TEST_SIZE)+'.png'
+    Plot_Loss_and_Acc(ep,train_loss,train_acc,title,file_name,'Epoch')
     
     test_loss, test_acc = Test_Model(weights, test_features, test_target)
     Plot_ROC(weights,test_features,test_target)
