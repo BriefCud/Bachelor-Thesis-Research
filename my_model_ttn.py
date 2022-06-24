@@ -91,55 +91,6 @@ def Batch_and_Shuffle(x,y):
   np.random.shuffle(data)
   return np.split(data[:,0:N_QUBITS],z), np.split(data[:,-1],z),z
 
-def Train_Model(x, y):
-  z = int(len(x) / BATCH_SIZE)
-  loss_step_data = np.zeros(N_EPOCHS*z)
-  acc_step_data = np.zeros(N_EPOCHS*z)
-  loss_epoch_data = np.zeros(N_EPOCHS)
-  acc_epoch_data = np.zeros(N_EPOCHS)
-  print("Training...")
-  print("Epoch\tLoss\tAccuracy")
-  step=0
-  for i in range(N_EPOCHS):
-    
-    # Batch and shuffle the data for ever epoch
-    train_f, train_t, chunks = Batch_and_Shuffle(x, y)
-
-    for j in range(chunks):
-      loss_step_data[step],acc_step_data[step], opt_state = Train_Step(step, opt_state, train_f[j], train_t[j])
-      step+=1
-    
-    # TO DO
-    # implement arrays thta store data for each step and for each epoch.
-    loss_epoch_data[i] = np.mean(loss_step_data[((step-1)-chunks):(step-1)]) 
-
-    if (i+1) % 100 == 0:
-      print(f"{i+1}\t{loss_data[step-1]:.3f}\t{acc_data[step-1]*100:.2f}%")
-      np.save("ttn_w/ttn_weights_epcoh_"+ str(i+1) +".npy", get_params(opt_state))
-   
-  file_weights = "ttn_w/final_ttn_weights.npy"
-  np.save(file_weights, get_params(opt_state))
-
-  return opt_state, loss_data, acc_data
-
-def Test_Model(w, x, y):
-  print("Testing...")  
-  print("\tLoss\tAccuracy")
-  # Batch and shuffle the data for ever epoch
-  test_f, test_t, chunks = Batch_and_Shuffle(x, y)
-  loss_temp = np.zeros(chunks)
-  acc_temp = np.zeros(chunks)
-
-  for j in range(chunks):
-    loss_temp[j],acc_temp[j] = Test_Step(w, test_f[j], test_t[j])
-
-  loss_data = np.average(loss_temp)
-  acc_data = np.average(acc_temp)
-
-  print(f"\t{loss_data:.3f}\t{acc_data*100:.2f}%")
-
-  return loss_data, acc_data
-
 def Plot_ROC(w,x,y):
   z = int(len(x) / BATCH_SIZE)
   new_x = np.split(x,z)
@@ -174,19 +125,73 @@ def Plot_ROC(w,x,y):
   frame = pd.DataFrame(roc_d)
   frame.to_csv('ttn_roc_data.csv', index=False)
 
-def Plot_Loss_and_Acc(ep,loss,acc):
-  fig, ax1 = plt.subplots() 
-  ax1.set_xlabel('# of Epochs') 
-  ax1.set_ylabel('Loss', color = 'black') 
-  plot_1 = ax1.plot(ep, loss, color = 'black') 
-  ax1.tick_params(axis ='y', labelcolor = 'black')
-  ax2 = ax1.twinx() 
-  ax2.set_ylabel('Accuracy', color = 'green') 
-  plot_2 = ax2.plot(ep, acc, color = 'green') 
-  ax2.tick_params(axis ='y', labelcolor = 'green')
-  plt.title("Tree Tensor Network Architecture Loss and Accuracy")
-  file_name = 'ttn_full_training'+str(TRAIN_SIZE)+'_testing'+str(TEST_SIZE)+'.png'
-  plt.savefig(file_name) 
+def Plot_Loss_and_Acc(ep,loss,acc,title,file_name,xlabel):
+  figure, axis = plt.subplots(2, 1)
+    
+  axis[0].plot(ep, acc)
+  axis[0].set_xlabel(xlabel, size=14)
+  axis[0].set_ylabel('Accuracy', size=14)
+
+  axis[1].plot(ep,loss)
+  axis[1].set_xlabel(xlabel, size=14)
+  axis[1].set_ylabel('Loss', size=14)
+
+  figure.suptitle(title)
+  plt.figure(figsize=(10,8))
+  plt.savefig(file_name)
+  plt.clf()
+
+def Train_Model(x, y):
+  z = int(len(x) / BATCH_SIZE)
+  loss_step_data = np.zeros(N_EPOCHS*z)
+  acc_step_data = np.zeros(N_EPOCHS*z)
+  loss_epoch_data = np.zeros(N_EPOCHS)
+  acc_epoch_data = np.zeros(N_EPOCHS)
+  print("Training...")
+  print("Epoch\tLoss\tAccuracy")
+  step=0
+  for i in range(N_EPOCHS):
+    
+    # Batch and shuffle the data for ever epoch
+    train_f, train_t, chunks = Batch_and_Shuffle(x, y)
+
+    for j in range(chunks):
+      loss_step_data[step],acc_step_data[step], opt_state = Train_Step(step, opt_state, train_f[j], train_t[j])
+      step+=1
+    
+    loss_epoch_data[i] = np.mean(loss_step_data[step-chunks:step]) # get the mean of the loss for the chunk size
+    acc_epoch_data[i] = np.mean(acc_step_data[step-chunks:step])
+
+    if (i+1) % 100 == 0:
+      print(f"{i+1}\t{loss_epoch_data[i]:.3f}\t{acc_epoch-data[i]*100:.2f}%")
+      np.save("ttn_w/ttn_weights_epcoh_"+ str(i+1) +".npy", get_params(opt_state))
+   
+  file_weights = "ttn_w/final_ttn_weights.npy"
+  np.save(file_weights, get_params(opt_state))
+  
+  title = 'Accuracy and Loss vs Steps'
+  file_name = 'ttn_data/ttn_acc_loss_training'+str(TRAIN_SIZE)+'_testing'+str(TEST_SIZE)+'.png'
+  Plot_Loss_and_Acc(np.linspace(1,N_EPOCHS*z,num=N_EPOCHS*z),loss_step_data,acc_step_data,title,file_name,'Step')
+  
+  return opt_state, loss_data, acc_data
+
+def Test_Model(w, x, y):
+  print("Testing...")  
+  print("\tLoss\tAccuracy")
+  # Batch and shuffle the data for ever epoch
+  test_f, test_t, chunks = Batch_and_Shuffle(x, y)
+  loss_temp = np.zeros(chunks)
+  acc_temp = np.zeros(chunks)
+
+  for j in range(chunks):
+    loss_temp[j],acc_temp[j] = Test_Step(w, test_f[j], test_t[j])
+
+  loss_data = np.average(loss_temp)
+  acc_data = np.average(acc_temp)
+
+  print(f"\t{loss_data:.3f}\t{acc_data*100:.2f}%")
+
+  return loss_data, acc_data
 
 def Run_Model():
   # Loads the dataset (already preprocessed... see dataset.py)
