@@ -73,16 +73,16 @@ init_state = opt_init(init_weights)
 # This function is compiled Just-In-Time on the GPU
 @jax.jit
 def Train_Step(stepid, opt_state,train_f,train_t):
-  current_w = get_params(opt_state)
-  loss_value, grads = jax.value_and_grad(Loss,argnums=0)(current_w,train_f,train_t)
-  acc_value = Accuracy(current_w,train_f,train_t)
+  w = get_params(opt_state)
+  loss_value, grads = jax.value_and_grad(Loss,argnums=0)(w,train_f,train_t)
+  acc_value = Accuracy(w,train_f,train_t)
   opt_state = opt_update(stepid, grads, opt_state)
   return loss_value,acc_value, opt_state
 
 @jax.jit
-def Test_Step(current_w,test_f,test_t):
-  loss_value, grads = jax.value_and_grad(Loss,argnums=0)(current_w,test_f,test_t)
-  acc_value = Accuracy(current_w,test_f,test_t)
+def Test_Step(w,test_f,test_t):
+  loss_value = Loss(w,test_f,test_t)
+  acc_value = Accuracy(w,test_f,test_t)
   return loss_value, acc_value
 
 def Batch_and_Shuffle(x,y):
@@ -137,8 +137,7 @@ def Plot_Loss_and_Acc(ep,loss,acc,title,file_name,xlabel):
 
   figure.suptitle(title)
   plt.figure(figsize=(10,8))
-  # plt.savefig(file_name)
-  plt.show()
+  plt.savefig(file_name)
   plt.clf()
 
 def Train_Model(opt_state,x, y):
@@ -164,10 +163,8 @@ def Train_Model(opt_state,x, y):
 
     if (i+1) % 100 == 0:
       print(f"{i+1}\t{loss_epoch_data[i]:.3f}\t{acc_epoch-data[i]*100:.2f}%")
-      np.save("ttn_w/ttn_weights_epcoh_"+ str(i+1) +".npy", get_params(opt_state))
    
-  file_weights = "ttn_w/final_ttn_weights.npy"
-  np.save(file_weights, get_params(opt_state))
+  np.save("mps_w/final_mps_weights.npy", get_params(opt_state))
   
   title = 'Accuracy and Loss vs Steps for MPS'
   file_name = 'mps_data/mps_acc_loss_training'+str(TRAIN_SIZE)+'_testing'+str(TEST_SIZE)+'.png'
@@ -218,9 +215,8 @@ def Run_Model():
     
     test_loss, test_acc = Test_Model(weights, test_features, test_target)
     Plot_ROC(weights,test_features,test_target)
-    
-    d_t = np.ones(len(train_loss))
-    d = {'Epochs': ep, 'Train Loss': train_loss, 'Train Accuracy':train_acc, 'Test Loss':d_t*test_loss, 'Test Accuracy':d_t*test_acc}
+
+    d = {'Epochs': ep, 'Train Loss': train_loss, 'Train Accuracy':train_acc}
     frame = pd.DataFrame(d)
     frame.to_csv('mps_loss_accuracy_data', index=False)
     
