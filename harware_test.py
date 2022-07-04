@@ -1,14 +1,13 @@
 # Imports
 import pandas as pd
 import numpy as np
-from dataset16 import load_dataset
+# from dataset16 import load_dataset
 from sklearn.metrics import roc_curve, roc_auc_score 
 from sklearn.preprocessing import MinMaxScaler
 import pennylane as qml
 from functools import partial
 import jax
-#import optax
-from jax.example_libraries.optimizers import adam
+import optax
 import jax.numpy as jnp
 import matplotlib.pyplot as plt
 import os
@@ -18,7 +17,7 @@ from qiskit import IBMQ
 # Constants
 SEED=0              # Fix it for reproducibility (kind of)
 TRAIN_SIZE = 0
-TEST_SIZE = 300*5  # Number of jets (has to be even) for testing
+TEST_SIZE = 300  # Number of jets (has to be even) for testing
 N_QUBITS = 16       # One qubit per feature
 N_LAYERS = 2        # Add more layers for extra complexity
 LR=1e-3           # Learning rate of the ADAM optimizer
@@ -26,11 +25,9 @@ N_EPOCHS = 10     # Number of training epochs
 BATCH_SIZE = 300
 N_PARAMS_B = 3
 
-token=""
-prov = IBMQ.get_provider(hub='ibm-q-cern',group='internal', project='qml4btag')
-ibm_device = qml.device('qiskit.ibmq', provider=prov,backend='ibm_hanoi',wires=N_QUBITS,imbqx_token = token)
-
-opt_init, opt_update, get_params = adam(LR)
+t = "e1bb7ef4639cd45e225c549e0009c4998bcf50029a30d20cc0301fbfdc706fa02acfda36512c8bf462d56fe30cac2ebe327a3748f9ba7c0745d593f8b32696fe"
+provider = IBMQ.enable_account(t,hub='ibm-q-cern',group='infn', project='qlm4btag')
+ibm_device = qml.device('qiskit.ibmq', provider=provider,backend='ibmq_qasm_simulator',wires=N_QUBITS,imbqx_token=t)
 
 def Block(weights,wires):
   qml.RZ(weights[0], wires=wires[0])
@@ -39,7 +36,7 @@ def Block(weights,wires):
   qml.CZ(wires=wires)
     
 @partial(jax.vmap,in_axes=[0,None,None])
-@qml.batch_param(all_operations=true)
+@qml.batch_param(all_operations=True)
 @qml.qnode(ibm_device,interface='jax')
 def Strong_Circuit(x,w):
     qml.AngleEmbedding(x, wires=range(N_QUBITS))
@@ -47,7 +44,7 @@ def Strong_Circuit(x,w):
     return qml.expval(qml.PauliZ(0))
 
 @partial(jax.vmap,in_axes=[0,None,None])
-@qml.batch_param(all_operations=true)
+@qml.batch_param(all_operations=True)
 @qml.qnode(ibm_device,interface='jax')
 def Mps_Circuit(x,w):
   qml.AngleEmbedding(x, wires=range(N_QUBITS))
@@ -55,7 +52,7 @@ def Mps_Circuit(x,w):
   return qml.expval(qml.PauliZ(N_QUBITS-1))
 
 @partial(jax.vmap,in_axes=[0,None,None])
-@qml.batch_param(all_operations=true)
+@qml.batch_param(all_operations=True)
 @qml.qnode(ibm_device,interface='jax')
 def Ttn_Circuit(x,w):
   qml.AngleEmbedding(x, wires=range(N_QUBITS))
@@ -106,7 +103,7 @@ def Test_Step(w,x,y,n):
 
   return loss_value, acc_value
 
-def Test_Model(w,x,y,n):
+def Test_Hardware(w,x,y,n):
   print("Testing...")  
   print("\tLoss\tAccuracy")
   # Batch and shuffle the data for ever epoch
@@ -124,42 +121,42 @@ def Test_Model(w,x,y,n):
 
   return loss_data, acc_data
 
-def Run_Model():
+def Run_Hardware():
   
   train_features,train_target,test_features,test_target = load_dataset(TRAIN_SIZE,TEST_SIZE,SEED)
   
   input_model = input("Which model would you like to choose from, Strong=0, MPS=1, TTN=2? Enter a number:")
-    path=""
+  path=""
+  n=0
+  file_name = ''
+  if(input_model=='0'):
+    path = "/content/drive/MyDrive/Colab Notebooks/BTR/strong_w/"
     n=0
-    file_name = ''
-    if(input_model=='0'):
-      path = "strong_w/"
-      n=0
-      file_name = 'strong_data/strong_loss_accuracy_data_hardware_testsize'+str(TESTSIZE)+'.csv'
-    elif(input_model=='1'):
-      path = "mps_w/"
-      n=1
-      file_name = 'mps_data/mps_loss_accuracy_data_hardware_testsize'+str(TESTSIZE)+'.csv'
-    elif(input_model=='2'):
-      path = "ttn_w/"
-      n=2
-      file_name = 'ttn_data/ttn_loss_accuracy_data_hardware_testsize'+str(TESTSIZE)+'.csv'
-    else:
-      print("Model does not exist")
-      exit()
+    file_name = 'strong_data/strong_loss_accuracy_data_hardware_testsize'+str(TEST_SIZE)+'.csv'
+  elif(input_model=='1'):
+    path = "/content/drive/MyDrive/Colab Notebooks/BTR/mps_w/"
+    n=1
+    file_name = 'mps_data/mps_loss_accuracy_data_hardware_testsize'+str(TEST_SIZE)+'.csv'
+  elif(input_model=='2'):
+    path = "/content/drive/MyDrive/Colab Notebooks/BTR/ttn_w/"
+    n=2
+    file_name = 'ttn_data/ttn_loss_accuracy_data_hardware_testsize'+str(TEST_SIZE)+'.csv'
+  else:
+    print("Model does not exist")
+    exit()
 
-    weights_files = os.scandir(path) # Get the .npy weight files
-    with weights_files as entries:
-      for entry in entries:
-        print(entry.name)
-    print("Please Choose a file from above to load the weights for the Strong model, otherwise press the space bar, then enter to pass this stage.")
-    w_f = input("Enter file name:  ")
-    
-    weights = np.load(path+"/"+w_f)
-    test_loss, test_acc = Test_Model(weights, test_features, test_target,n)
-    
-    d = {'Test Loss': test_loss, 'Test Accuracy':test_acc}
-    frame = pd.DataFrame(d)
-    frame.to_csv(file_name, index=False)
-    
-    
+  weights_files = os.scandir(path) # Get the .npy weight files
+  with weights_files as entries:
+    for entry in entries:
+      print(entry.name)
+  print("Please Choose a file from above to load the weights for the Strong model, otherwise press the space bar, then enter to pass this stage.")
+  w_f = input("Enter file name:  ")
+
+  weights = np.load(path+"/"+w_f)
+  test_loss, test_acc = Test_Hardware(weights, test_features, test_target,n)
+
+  d = {'Test Loss': test_loss, 'Test Accuracy':test_acc}
+  frame = pd.DataFrame(d)
+  frame.to_csv(file_name, index=False)
+
+Run_Hardware()
