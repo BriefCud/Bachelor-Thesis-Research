@@ -122,7 +122,8 @@ def Plot_ROC(w,x,y):
   
   roc_d = {'FPR': fpr, 'TPR': tpr, 'Threshold': threshold, 'Area': df_auc}
   frame = pd.DataFrame(roc_d)
-  frame.to_csv('mps_data/mps_roc_data_training' +str(TRAIN_SIZE)+'_testing'+str(TEST_SIZE)+'.csv', index=False)
+  fname = 'mps_data/mps_roc_data_training' +str(TRAIN_SIZE)+'_testing'+str(TEST_SIZE)+'.csv'
+  frame.to_csv(fname, index=False)
   
   # Plot the distribution
   pb = predictions[y==1]
@@ -175,12 +176,12 @@ def Train_Model(opt_state,x, y):
     if (i+1) % 100 == 0:
       print(f"{i+1}\t{loss_epoch_data[i]:.3f}\t{acc_epoch-data[i]*100:.2f}%")
       
-  fname = "mps_w/final_mps_weights_training"+str(TRAIN_SIZE)+"_testing"str(TEST_SIZE)".npy" 
-  np.save(fname, get_params(opt_state))
+  fweights = "mps_w/final_mps_weights_training"+str(TRAIN_SIZE)+"_testing"str(TEST_SIZE)".npy" 
+  np.save(fweights, get_params(opt_state))
   
   title = 'Accuracy and Loss vs Steps for MPS'
   fname = 'mps_data/mps_acc_loss_training'+str(TRAIN_SIZE)+'_testing'+str(TEST_SIZE)+'.png'
-  Plot_Loss_and_Acc(np.linspace(1,N_EPOCHS*z,num=N_EPOCHS*z),loss_step_data,acc_step_data,title,file_name,'Step')
+  Plot_Loss_and_Acc(np.linspace(1,N_EPOCHS*z,num=N_EPOCHS*z),loss_step_data,acc_step_data,title,fname,'Step')
   
   d = {'Steps': np.linspace(1,step,step), 'Train Loss': loss_step_data, 'Train Accuracy':acc_step_data}
   frame = pd.DataFrame(d)
@@ -228,7 +229,7 @@ def Run_Model():
     ep = np.linspace(1,len(train_loss),num=len(train_loss))
     title = 'Loss and Accuray vs Epoch for MPS model'
     fname = 'mps_data/mps_epoch_acc_loss_training'+str(TRAIN_SIZE)+'_testing'+str(TEST_SIZE)+'.png'
-    Plot_Loss_and_Acc(ep,train_loss,train_acc,title,file_name,'Epoch')
+    Plot_Loss_and_Acc(ep,train_loss,train_acc,title,fname,'Epoch')
     
     test_loss, test_acc = Test_Model(weights, test_features, test_target)
     Plot_ROC(weights,test_features,test_target)
