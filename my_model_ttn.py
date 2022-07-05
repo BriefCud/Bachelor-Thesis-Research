@@ -13,14 +13,14 @@ from sklearn.metrics import roc_curve, roc_auc_score
 
 # ------ Constants ------#
 
-SEED=0      
-TRAIN_SIZE = 10000 
-TEST_SIZE = 5000
+SEED=737      
+TRAIN_SIZE = 300*700 
+TEST_SIZE = 300*1000
 N_QUBITS = 16   
 N_PARAMS_B = 3
-LR=1e-2 
-N_EPOCHS = 3000
-BATCH_SIZE = 200
+LR=1e-3 
+N_EPOCHS = 100
+BATCH_SIZE = 300
 
 #------------------------#
 
@@ -30,7 +30,7 @@ def Block(weights,wires):
   qml.RZ(weights[0], wires=wires[0])
   qml.RY(weights[1], wires=wires[1])
   qml.U1(weights[2],wires=wires[0])
-  qml.CZ(wires=wires)
+  qml.CNOY(wires=wires)
 
 @partial(jax.vmap,in_axes=[0,None]) # Vectorized version of the function
 @qml.qnode(device,interface='jax')  # Create a Pennylane QNode
@@ -98,13 +98,13 @@ def Plot_ROC(w,x,y):
   plt.ylabel("True Positive Rate")
   plt.title("Receiver Operating Characteristic")
   plt.legend(loc="lower right")
-  fname = 'ROC_ttn_training' +str(TRAIN_SIZE)+'_testing'+str(TEST_SIZE)+'.png'
+  fname = 'ttn_data/ROC_ttn_training' +str(TRAIN_SIZE)+'_testing'+str(TEST_SIZE)+'.png'
   plt.savefig(fname)
   plt.clf()
   
   roc_d = {'FPR': fpr, 'TPR': tpr, 'Threshold': threshold, 'Area': df_auc}
   frame = pd.DataFrame(roc_d)
-  frame.to_csv('ttn_roc_data.csv', index=False)
+  frame.to_csv('ttn_data/ttn_roc_data_training' +str(TRAIN_SIZE)+'_testing'+str(TEST_SIZE)+'.csv', index=False)
   
   pb = predictions[y==1]
   pb_bar = predictions[y==-1]
@@ -112,7 +112,7 @@ def Plot_ROC(w,x,y):
   plt.hist(pb_bar,bins=np.linspace(-1, 1, 100),alpha=0.5,label='Pb-bar')
   plt.xlim([-1,1])
   plt.legend(loc='upper right')
-  fname = 'mps_data/mps_prob_dist_training' +str(TRAIN_SIZE)+'_testing'+str(TEST_SIZE)+'.png'
+  fname = 'ttn_data/ttn_prob_dist_training' +str(TRAIN_SIZE)+'_testing'+str(TEST_SIZE)+'.png'
   plt.savefig(fname)
   plt.clf()
 
@@ -155,14 +155,18 @@ def Train_Model(opt_state,x, y):
 
     if (i+1) % 100 == 0:
       print(f"{i+1}\t{loss_epoch_data[i]:.3f}\t{acc_epoch-data[i]*100:.2f}%")
-      np.save("ttn_w/ttn_weights_epcoh_"+ str(i+1) +".npy", get_params(opt_state))
-   
-  file_weights = "ttn_w/final_ttn_weights.npy"
+      
+  file_weights = "ttn_w/final_ttn_weights_training" +str(TRAIN_SIZE)+"_testing"+str(TEST_SIZE)+".npy"
   np.save(file_weights, get_params(opt_state))
   
   title = 'Accuracy and Loss vs Steps'
-  file_name = 'ttn_data/ttn_acc_loss_training'+str(TRAIN_SIZE)+'_testing'+str(TEST_SIZE)+'.png'
-  Plot_Loss_and_Acc(np.linspace(1,N_EPOCHS*z,num=N_EPOCHS*z),loss_step_data,acc_step_data,title,file_name,'Step')
+  fname = 'ttn_data/ttn_acc_loss_training'+str(TRAIN_SIZE)+'_testing'+str(TEST_SIZE)+'.png'
+  Plot_Loss_and_Acc(np.linspace(1,N_EPOCHS*z,num=N_EPOCHS*z),loss_step_data,acc_step_data,title,fname,'Step')
+  
+  d = {'Steps': np.linspace(1,step,step), 'Train Loss': train_loss, 'Train Accuracy':train_acc}
+  frame = pd.DataFrame(d)
+  fname = 'ttn_data/ttn_step_loss_accuracy_data_training' +str(TRAIN_SIZE)+'_testing'+str(TEST_SIZE)+'.csv'
+  frame.to_csv(fname, index=False)
   
   return opt_state, loss_data, acc_data
 
@@ -210,11 +214,12 @@ def Run_Model():
     test_loss, test_acc = Test_Model(weights, test_features, test_target)
     Plot_ROC(weights,test_features,test_target)
     
-    d = {'Epochs': ep, 'Train Loss': train_loss, 'Train Accuracy':train_acc, 'Test Loss':test_loss, 'Test Accuracy':test_acc}
+    d = {'Epochs': ep, 'Train Loss': train_loss, 'Train Accuracy':train_acc}
     frame = pd.DataFrame(d)
-    frame.to_csv('ttn_loss_accuracy_data', index=False)
+    fname = 'ttn_data/ttn_epoch_loss_accuracy_data_training' +str(TRAIN_SIZE)+'_testing'+str(TEST_SIZE)+'.csv'
+    frame.to_csv(fname, index=False)
     
-  
+  Run_Model()
   
 
   
