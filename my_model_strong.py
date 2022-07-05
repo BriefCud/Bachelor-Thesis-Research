@@ -15,12 +15,12 @@ from sklearn.metrics import roc_curve, roc_auc_score
 # ------ Constants ------#
 
 SEED=0      
-TRAIN_SIZE = 200*200 
-TEST_SIZE = 200*300
+TRAIN_SIZE = 300*400 
+TEST_SIZE = 300*500
 N_QUBITS = 16   
 LR=1e-3 
-N_EPOCHS = 1500
-BATCH_SIZE = 200
+N_EPOCHS = 200
+BATCH_SIZE = 300
 
 #------------------------#
 
@@ -120,7 +120,7 @@ def Plot_ROC(w,x,y,layer):
   plt.hist(pb_bar,bins=np.linspace(-1, 1, 100),alpha=0.5,label='Pb-bar')
   plt.xlim([-1,1])
   plt.legend(loc='upper right')
-  fname = 'strong_data/strong_prob_dist_training' +str(TRAIN_SIZE)+'_testing'+str(TEST_SIZE)+'.png'
+  fname = 'strong_data/strong_prob_dist_layer'+str(layer)+'_training' +str(TRAIN_SIZE)+'_testing'+str(TEST_SIZE)+'.png'
   plt.savefig(fname)
   plt.clf()
 
@@ -140,7 +140,7 @@ def Plot_Loss_and_Acc(ep,loss,acc,title,file_name,xlabel):
   plt.savefig(file_name)
   plt.clf()
 
-def Train_Model(opt_state,x, y):
+def Train_Model(opt_state,x, y,layer):
   z = int(len(x) / BATCH_SIZE)
   loss_step_data = np.zeros(N_EPOCHS*z)
   acc_step_data = np.zeros(N_EPOCHS*z)
@@ -163,12 +163,18 @@ def Train_Model(opt_state,x, y):
 
     if (i+1) % 100 == 0:
       print(f"{i+1}\t{loss_epoch_data[i]:.3f}\t{acc_epoch-data[i]*100:.2f}%")
-   
-  np.save("strong_w/final_strong_weights.npy", get_params(opt_state))
+  
+  fname = "strong_w/final_strong_weights_layer'+str(layer)+'_training"+str(TRAIN_SIZE)+"_testing"+str(TEST_SIZE)+".npy"
+  np.save(fname, get_params(opt_state))
   
   title = 'Accuracy and Loss vs Steps for MPS'
-  file_name = 'strong_data/strong_step_acc_loss_training'+str(TRAIN_SIZE)+'_testing'+str(TEST_SIZE)+'.png'
-  Plot_Loss_and_Acc(np.linspace(1,N_EPOCHS*z,num=N_EPOCHS*z),loss_step_data,acc_step_data,title,file_name,'Step')
+  fname = 'strong_data/strong_step_acc_loss_layer'+str(layer)+'_training'+str(TRAIN_SIZE)+'_testing'+str(TEST_SIZE)+'.png'
+  Plot_Loss_and_Acc(np.linspace(1,N_EPOCHS*z,num=N_EPOCHS*z),loss_step_data,acc_step_data,title,fname,'Step')
+  
+  d = {'Steps': np.linspace(1,step,step), 'Train Loss': loss_step_data[i], 'Train Accuracy':acc_step_data[i]}
+  frame = pd.DataFrame(d)
+  fname = 'strong_data/strong_step_loss_accuracy_data_with'+str(layer)+'layers_training'+str(TRAIN_SIZE)+'_testing'+str(TEST_SIZE)+'.csv'
+  frame.to_csv(fname, index=False)
   
   return opt_state, loss_epoch_data, acc_epoch_data
 
@@ -219,7 +225,7 @@ def Run_Model():
       init_state = opt_init(initial_weights)
 
       print("Training with "+str(i+1)+" layer(s)")
-      weights, train_loss_data[i], train_acc_data[i] = Train_Model(init_state, train_features, train_target)
+      weights, train_loss_data[i], train_acc_data[i] = Train_Model(init_state, train_features, train_target,(i+1))
       fig_name = 'strong_data/strong_full_layer'+str(i+1)+'_training'+str(TRAIN_SIZE)+'_testing'+str(TEST_SIZE)+'.png'
       fig_title = "Strongly Entangling Layers("+str(i+1)+") Architecture Loss and Accuracy"
       Plot_Loss_and_Acc(np.linspace(1,N_EPOCHS,num=N_EPOCHS),train_loss_data,train_acc_data,fig_title,fig_name,'Epoch')
@@ -227,13 +233,13 @@ def Run_Model():
       test_loss[i], test_acc[i] = Test_Model(weights, test_features, test_target)
       Plot_ROC(weights,test_features,test_target,(i+1))
 
-      d = {'Epochs': ep, 'Train Loss': train_loss_data[i], 'Train Accuracy':train_acc_data[i], 'Test Loss':test_loss[i], 'Test Accuracy':test_acc[i]}
+      d = {'Epochs': ep, 'Train Loss': train_loss_data[i], 'Train Accuracy':train_acc_data[i]}
       frame = pd.DataFrame(d)
-      file_name = 'strong_loss_accuracy_data_with'+str(i+1)+'layers_training'+str(TRAIN_SIZE)+'_testing'+str(TEST_SIZE)+'.csv'
+      file_name = 'strong_data/strong_epoch_loss_accuracy_data_with'+str(i+1)+'layers_training'+str(TRAIN_SIZE)+'_testing'+str(TEST_SIZE)+'.csv'
       frame.to_csv(file_name, index=False)
     
     fig_name = 'strong_data/strong_full_training'+str(TRAIN_SIZE)+'_testing'+str(TEST_SIZE)+'.png'
     fig_title = "Strongly Entangling Layers Architecture Loss and Accuracy"
-    Plot_Loss_and_Acc(np.linspace(1,max_layers,num=max_layers),test_loss_data,test_acc_data,fig_title,fig_name,'Layer')
+    Plot_Loss_and_Acc(np.linspace(1,max_layers,num=max_layers),test_loss,test_acc,fig_title,fig_name,'Layer')
       
 Run_Model()  
