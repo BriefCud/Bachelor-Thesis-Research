@@ -156,8 +156,8 @@ def Train_Model(opt_state,x, y):
     if (i+1) % 100 == 0:
       print(f"{i+1}\t{loss_epoch_data[i]:.3f}\t{acc_epoch-data[i]*100:.2f}%")
       
-  file_weights = "ttn_w/final_ttn_weights_training" +str(TRAIN_SIZE)+"_testing"+str(TEST_SIZE)+".npy"
-  np.save(file_weights, get_params(opt_state))
+  fweights = "ttn_w/final_ttn_weights_training" +str(TRAIN_SIZE)+"_testing"+str(TEST_SIZE)+".npy"
+  np.save(fweights, get_params(opt_state))
   
   title = 'Accuracy and Loss vs Steps'
   fname = 'ttn_data/ttn_acc_loss_training'+str(TRAIN_SIZE)+'_testing'+str(TEST_SIZE)+'.png'
