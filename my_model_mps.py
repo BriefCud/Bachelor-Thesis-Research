@@ -116,14 +116,25 @@ def Plot_ROC(w,x,y):
   plt.ylabel("True Positive Rate")
   plt.title("Receiver Operating Characteristic")
   plt.legend(loc="lower right")
-  fname = 'ROC_mps_training' +str(TRAIN_SIZE)+'_testing'+str(TEST_SIZE)+'.png'
+  fname = 'mps_data/ROC_mps_training' +str(TRAIN_SIZE)+'_testing'+str(TEST_SIZE)+'.png'
   plt.savefig(fname)
   plt.clf()
   
   roc_d = {'FPR': fpr, 'TPR': tpr, 'Threshold': threshold, 'Area': df_auc}
   frame = pd.DataFrame(roc_d)
   frame.to_csv('mps_roc_data.csv', index=False)
-
+  
+  # Plot the distribution
+  pb = predictions[y==1]
+  pb_bar = predictions[y==-1]
+  plt.hist(pb,bins=np.linspace(-1, 1, 100),alpha=0.5,label='Pb')
+  plt.hist(pb_bar,bins=np.linspace(-1, 1, 100),alpha=0.5,label='Pb-bar')
+  plt.xlim([-1,1])
+  plt.legend(loc='upper right')
+  fname = 'mps_data/mps_prob_dist_training' +str(TRAIN_SIZE)+'_testing'+str(TEST_SIZE)+'.png'
+  plt.savefig(fname)
+  plt.clf()
+  
 def Plot_Loss_and_Acc(ep,loss,acc,title,file_name,xlabel):
   figure, axis = plt.subplots(2, 1)
 
