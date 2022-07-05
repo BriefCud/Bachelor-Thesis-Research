@@ -208,8 +208,8 @@ def Run_Model():
     weights = get_params(final_state)
     ep = np.linspace(1,N_EPOCHS,num=N_EPOCHS)
     title = 'Accurcy and Loss vs Eppch for TTN Model'
-    file_name = 'ttn_data/ttn_loss_acc_training'+str(TRAIN_SIZE)+'_testing'+str(TEST_SIZE)+'.png' 
-    Plot_Loss_and_Acc(ep,train_loss,train_acc,title,file_name,'Epoch')
+    fname = 'ttn_data/ttn_loss_acc_training'+str(TRAIN_SIZE)+'_testing'+str(TEST_SIZE)+'.png' 
+    Plot_Loss_and_Acc(ep,train_loss,train_acc,title,fname,'Epoch')
     
     test_loss, test_acc = Test_Model(weights, test_features, test_target)
     Plot_ROC(weights,test_features,test_target)
