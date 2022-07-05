@@ -1,4 +1,3 @@
-# Imports
 import numpy as np
 import pandas as pd
 import os
@@ -25,26 +24,14 @@ BATCH_SIZE = 200
 
 #------------------------#
 
-# Definiton of the Pennylane device using JAX
 device = qml.device("default.qubit.jax", wires=N_QUBITS,prng_key = jax.random.PRNGKey(SEED))
 
-# The block defines a variational quantum circuit that takes the position of tensors in the circuit
 def Block(weights,wires):
   qml.RZ(weights[0], wires=wires[0])
   qml.RY(weights[1], wires=wires[1])
   qml.U1(weights[2],wires=wires[0])
   qml.CZ(wires=wires)
 
-# Definition of the quantum circuit
-# x : features from the jet structure
-# w : weights of the model
-# The qml.qnode decorator transforms the python function into a Pennylane QNode
-# i.e. a circuit to be run on a specified device.
-# The partial(jax.vmap) decorator creates a vectorized version of the function
-# This way I can process multiple jets at one time, passing a vector of features.
-# in_axes = [0,None] specifies that I want to vectorize the function with respect
-# to the first parameter only (x), since I want the weights (w) to be the same for
-# each jet.
 @partial(jax.vmap,in_axes=[0,None]) # Vectorized version of the function
 @qml.qnode(device,interface='jax')  # Create a Pennylane QNode
 def Circuit(x,w):
@@ -52,25 +39,19 @@ def Circuit(x,w):
   qml.TTN(wires=range(N_QUBITS), n_block_wires=2,block=Block, n_params_block=N_PARAMS_B, template_weights=w) # Variational layer
   return qml.expval(qml.PauliZ(N_QUBITS-1)) # Expectation value of the \sigma_z operator on the 1st qubit
 
-# Simple MSE loss function
 def Loss(w,x,y):
   pred = Circuit(x,w)
   return jax.numpy.mean((pred - y) ** 2)
 
-# Simple binary accuracy function
 def Accuracy(w,x,y):
   pred = Circuit(x,w)
   return jax.numpy.mean(jax.numpy.sign(pred) == y)
 
-# Weights are initialized randomly
 init_weights = jax.random.uniform(jax.random.PRNGKey(SEED), (N_QUBITS-1, N_PARAMS_B))*jax.numpy.pi
 
-# The ADAM optimizer is initialized
 opt_init, opt_update, get_params = adam(LR)
 init_state = opt_init(init_weights)
 
-# Training step
-# This function is compiled Just-In-Time on the GPU
 @jax.jit
 def Train_Step(stepid, opt_state,train_f,train_t):
   current_w = get_params(opt_state)
@@ -124,6 +105,16 @@ def Plot_ROC(w,x,y):
   roc_d = {'FPR': fpr, 'TPR': tpr, 'Threshold': threshold, 'Area': df_auc}
   frame = pd.DataFrame(roc_d)
   frame.to_csv('ttn_roc_data.csv', index=False)
+  
+  pb = predictions[y==1]
+  pb_bar = predictions[y==-1]
+  plt.hist(pb,bins=np.linspace(-1, 1, 100),alpha=0.5,label='Pb')
+  plt.hist(pb_bar,bins=np.linspace(-1, 1, 100),alpha=0.5,label='Pb-bar')
+  plt.xlim([-1,1])
+  plt.legend(loc='upper right')
+  fname = 'mps_data/mps_prob_dist_training' +str(TRAIN_SIZE)+'_testing'+str(TEST_SIZE)+'.png'
+  plt.savefig(fname)
+  plt.clf()
 
 def Plot_Loss_and_Acc(ep,loss,acc,title,file_name,xlabel):
   figure, axis = plt.subplots(2, 1)
@@ -159,7 +150,7 @@ def Train_Model(opt_state,x, y):
       loss_step_data[step],acc_step_data[step], opt_state = Train_Step(step, opt_state, train_f[j], train_t[j])
       step+=1
     
-    loss_epoch_data[i] = np.mean(loss_step_data[step-chunks:step]) # get the mean of the loss for the chunk size
+    loss_epoch_data[i] = np.mean(loss_step_data[step-chunks:step])
     acc_epoch_data[i] = np.mean(acc_step_data[step-chunks:step])
 
     if (i+1) % 100 == 0:
