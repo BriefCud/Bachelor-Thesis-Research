@@ -14,14 +14,14 @@ from sklearn.metrics import roc_curve, roc_auc_score
 
 # ------ Constants ------#
 
-SEED=0      
-TRAIN_SIZE = 200*50
-TEST_SIZE = 200*100
+SEED=737      
+TRAIN_SIZE = 300*700
+TEST_SIZE = 300*1000
 N_QUBITS = 16   
 N_PARAMS_B = 3
 LR=1e-3 
-N_EPOCHS = 1000
-BATCH_SIZE = 200
+N_EPOCHS = 100
+BATCH_SIZE = 300
 
 #------------------------#
 
@@ -33,7 +33,7 @@ def Block(weights,wires):
   qml.RZ(weights[0], wires=wires[0])
   qml.RY(weights[1], wires=wires[1])
   qml.U1(weights[2],wires=wires[0])
-  qml.CZ(wires=wires)
+  qml.CNOT(wires=wires)
 
 # Definition of the quantum circuit
 # x : features from the jet structure
@@ -122,7 +122,7 @@ def Plot_ROC(w,x,y):
   
   roc_d = {'FPR': fpr, 'TPR': tpr, 'Threshold': threshold, 'Area': df_auc}
   frame = pd.DataFrame(roc_d)
-  frame.to_csv('mps_roc_data.csv', index=False)
+  frame.to_csv('mps_data/mps_roc_data_training' +str(TRAIN_SIZE)+'_testing'+str(TEST_SIZE)+'.csv', index=False)
   
   # Plot the distribution
   pb = predictions[y==1]
@@ -174,13 +174,19 @@ def Train_Model(opt_state,x, y):
 
     if (i+1) % 100 == 0:
       print(f"{i+1}\t{loss_epoch_data[i]:.3f}\t{acc_epoch-data[i]*100:.2f}%")
-   
-  np.save("mps_w/final_mps_weights.npy", get_params(opt_state))
+      
+  fname = "mps_w/final_mps_weights_training"+str(TRAIN_SIZE)+"_testing"str(TEST_SIZE)".npy" 
+  np.save(fname, get_params(opt_state))
   
   title = 'Accuracy and Loss vs Steps for MPS'
-  file_name = 'mps_data/mps_acc_loss_training'+str(TRAIN_SIZE)+'_testing'+str(TEST_SIZE)+'.png'
+  fname = 'mps_data/mps_acc_loss_training'+str(TRAIN_SIZE)+'_testing'+str(TEST_SIZE)+'.png'
   Plot_Loss_and_Acc(np.linspace(1,N_EPOCHS*z,num=N_EPOCHS*z),loss_step_data,acc_step_data,title,file_name,'Step')
   
+  d = {'Steps': np.linspace(1,step,step), 'Train Loss': loss_step_data, 'Train Accuracy':acc_step_data}
+  frame = pd.DataFrame(d)
+  fname = 'mps_data/mps_step_loss_accuracy_data_training' +str(TRAIN_SIZE)+'_testing'+str(TEST_SIZE)+'.csv'
+  frame.to_csv(fname, index=False)
+
   return opt_state, loss_epoch_data, acc_epoch_data
 
 def Test_Model(w, x, y):
@@ -221,7 +227,7 @@ def Run_Model():
     weights = get_params(final_state)
     ep = np.linspace(1,len(train_loss),num=len(train_loss))
     title = 'Loss and Accuray vs Epoch for MPS model'
-    file_name = 'mps_data/mps_acc_loss_training'+str(TRAIN_SIZE)+'_testing'+str(TEST_SIZE)+'.png'
+    fname = 'mps_data/mps_epoch_acc_loss_training'+str(TRAIN_SIZE)+'_testing'+str(TEST_SIZE)+'.png'
     Plot_Loss_and_Acc(ep,train_loss,train_acc,title,file_name,'Epoch')
     
     test_loss, test_acc = Test_Model(weights, test_features, test_target)
@@ -229,5 +235,7 @@ def Run_Model():
 
     d = {'Epochs': ep, 'Train Loss': train_loss, 'Train Accuracy':train_acc}
     frame = pd.DataFrame(d)
-    frame.to_csv('mps_loss_accuracy_data', index=False)
+    fname = 'mps_data/mps_epoch_loss_accuracy_data_training' +str(TRAIN_SIZE)+'_testing'+str(TEST_SIZE)+'.csv'
+    frame.to_csv(fname, index=False)
     
+Run_Model()
