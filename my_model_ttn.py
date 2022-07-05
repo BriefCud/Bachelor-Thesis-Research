@@ -163,7 +163,7 @@ def Train_Model(opt_state,x, y):
   fname = 'ttn_data/ttn_acc_loss_training'+str(TRAIN_SIZE)+'_testing'+str(TEST_SIZE)+'.png'
   Plot_Loss_and_Acc(np.linspace(1,N_EPOCHS*z,num=N_EPOCHS*z),loss_step_data,acc_step_data,title,fname,'Step')
   
-  d = {'Steps': np.linspace(1,step,step), 'Train Loss': train_loss, 'Train Accuracy':train_acc}
+  d = {'Steps': np.linspace(1,step,step), 'Train Loss': loss_step_data, 'Train Accuracy':acc_step_data}
   frame = pd.DataFrame(d)
   fname = 'ttn_data/ttn_step_loss_accuracy_data_training' +str(TRAIN_SIZE)+'_testing'+str(TEST_SIZE)+'.csv'
   frame.to_csv(fname, index=False)
