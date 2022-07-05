@@ -112,6 +112,17 @@ def Plot_ROC(w,x,y,layer):
   frame = pd.DataFrame(roc_d)
   file_name = 'strong_data/strong_roc_data_'+str(layer)+'layers_training'+str(TRAIN_SIZE)+'_testing'+str(TEST_SIZE)+'.csv'
   frame.to_csv(file_name, index=False)
+  
+  # Plot the distribution
+  pb = predictions[y==1]
+  pb_bar = predictions[y==-1]
+  plt.hist(pb,bins=np.linspace(-1, 1, 100),alpha=0.5,label='Pb')
+  plt.hist(pb_bar,bins=np.linspace(-1, 1, 100),alpha=0.5,label='Pb-bar')
+  plt.xlim([-1,1])
+  plt.legend(loc='upper right')
+  fname = 'strong_data/strong_prob_dist_training' +str(TRAIN_SIZE)+'_testing'+str(TEST_SIZE)+'.png'
+  plt.savefig(fname)
+  plt.clf()
 
 def Plot_Loss_and_Acc(ep,loss,acc,title,file_name,xlabel):
   figure, axis = plt.subplots(2, 1)
