@@ -80,12 +80,12 @@ def Batch_and_Shuffle(x,y):
   return np.split(data[:,0:N_QUBITS],z), np.split(data[:,-1],z),z
 
 def Plot_ROC(w,x,y,layer):
-  depth = int(len(x) / BATCH_SIZE)
-  new_x = np.split(x,depth)
-  ps = np.array(depth,BATCH_SIZE)
-  for i in range(depth):
+  z = int(len(x) / BATCH_SIZE)
+  new_x = np.split(x,z)
+  ps = np.array(z,BATCH_SIZE)
+  for i in range(z):
     ps[i] = Circuit(new_x[i],w)
-  predictions = np.reshape(ps, (ps.shape[0]*ps.shape[1])) # Convert 2D array to 1D array  
+  predictions = np.reshape(ps, (z*BATCH_SIZE)) # Convert 2D array to 1D array  
   fpr, tpr, threshold = roc_curve(y,predictions)
   auc = roc_auc_score(y,predictions)
   df_auc = np.ones(len(fpr))*auc
