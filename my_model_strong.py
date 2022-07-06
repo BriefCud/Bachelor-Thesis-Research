@@ -82,10 +82,10 @@ def Batch_and_Shuffle(x,y):
 def Plot_ROC(w,x,y,layer):
   depth = int(len(x) / BATCH_SIZE)
   new_x = np.split(x,depth)
-  ps = np.array(TEST_SIZE)
+  ps = np.array(depth,BATCH_SIZE)
   for i in range(depth):
     ps[i] = Circuit(new_x[i],w)
-  predictions = np.reshape(ps, (ps.shape[0]*ps.shape[1], ps.shape[2])) # Convert 3D array to 2D array  
+  predictions = np.reshape(ps, (ps.shape[0]*ps.shape[1])) # Convert 2D array to 1D array  
   fpr, tpr, threshold = roc_curve(y,predictions)
   auc = roc_auc_score(y,predictions)
   df_auc = np.ones(len(fpr))*auc
@@ -162,7 +162,7 @@ def Train_Model(opt_state,x, y,layer):
     acc_epoch_data[i] = np.mean(acc_step_data[step-chunks:step])
 
     if (i+1) % 100 == 0:
-      print(f"{i+1}\t{loss_epoch_data[i]:.3f}\t{acc_epoch-data[i]*100:.2f}%")
+      print(f"{i+1}\t{loss_epoch_data[i]:.3f}\t{acc_epoch_data[i]*100:.2f}%")
   
   fname = "strong_w/final_strong_weights_layer'+str(layer)+'_training"+str(TRAIN_SIZE)+"_testing"+str(TEST_SIZE)+".npy"
   np.save(fname, get_params(opt_state))
