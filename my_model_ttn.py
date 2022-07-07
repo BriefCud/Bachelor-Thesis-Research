@@ -30,7 +30,7 @@ def Block(weights,wires):
   qml.RZ(weights[0], wires=wires[0])
   qml.RY(weights[1], wires=wires[1])
   qml.U1(weights[2],wires=wires[0])
-  qml.CNOY(wires=wires)
+  qml.CNOT(wires=wires)
 
 @partial(jax.vmap,in_axes=[0,None]) # Vectorized version of the function
 @qml.qnode(device,interface='jax')  # Create a Pennylane QNode
