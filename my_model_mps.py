@@ -176,7 +176,7 @@ def Train_Model(opt_state,x, y):
     if (i+1) % 100 == 0:
       print(f"{i+1}\t{loss_epoch_data[i]:.3f}\t{acc_epoch_data[i]*100:.2f}%")
       
-  fweights = "mps_w/final_mps_weights_training"+str(TRAIN_SIZE)+"_testing"str(TEST_SIZE)".npy" 
+  fweights = "mps_w/final_mps_weights_training"+str(TRAIN_SIZE)+"_testing"+str(TEST_SIZE)+".npy" 
   np.save(fweights, get_params(opt_state))
   
   title = 'Accuracy and Loss vs Steps for MPS'
