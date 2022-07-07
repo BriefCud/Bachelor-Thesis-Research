@@ -228,7 +228,7 @@ def Run_Model():
       weights, train_loss_data[i], train_acc_data[i] = Train_Model(init_state, train_features, train_target,(i+1))
       fig_name = 'strong_data/strong_full_layer'+str(i+1)+'_training'+str(TRAIN_SIZE)+'_testing'+str(TEST_SIZE)+'.png'
       fig_title = "Strongly Entangling Layers("+str(i+1)+") Architecture Loss and Accuracy"
-      Plot_Loss_and_Acc(np.linspace(1,N_EPOCHS,num=N_EPOCHS),train_loss_data,train_acc_data,fig_title,fig_name,'Epoch')
+      Plot_Loss_and_Acc(np.linspace(1,N_EPOCHS,num=N_EPOCHS),train_loss_data[i],train_acc_data[i],fig_title,fig_name,'Epoch')
 
       test_loss[i], test_acc[i] = Test_Model(weights, test_features, test_target)
       Plot_ROC(weights,test_features,test_target,(i+1))
