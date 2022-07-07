@@ -82,7 +82,7 @@ def Batch_and_Shuffle(x,y):
 def Plot_ROC(w,x,y,layer):
   z = int(len(x) / BATCH_SIZE)
   new_x = np.split(x,z)
-  ps = np.array(z,BATCH_SIZE)
+  ps = np.zeros(z,BATCH_SIZE)
   for i in range(z):
     ps[i] = Circuit(new_x[i],w)
   predictions = np.reshape(ps, (z*BATCH_SIZE)) # Convert 2D array to 1D array  
