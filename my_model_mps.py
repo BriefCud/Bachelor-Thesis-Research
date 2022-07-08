@@ -103,7 +103,7 @@ def Plot_ROC(w,x,y):
   df_auc = np.ones(len(fpr))*auc
   
   # Get data predictions from the XGBoost to compare ROC curves
-  xgb_csv =  pd.read_csv('/data/test_withxgb.csv')
+  xgb_csv =  pd.read_csv('data/test_withxgb.csv')
   xgb_pred = xgb_csv['XGB_PRED'] 
   xgb_target = xgb_csv['Jet_LABEL']*2-1
   xgb_fpr,xgb_tpr,xgb_threshold = roc_curve(xgb_target,xgb_pred)
