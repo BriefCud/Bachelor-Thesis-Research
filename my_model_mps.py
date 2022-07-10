@@ -18,7 +18,7 @@ from sklearn.metrics import roc_curve, roc_auc_score
 SEED=7
 TRAIN_SIZE = 1000*20 
 TEST_SIZE = 1000*30
-N_QUBITS = 4   
+N_QUBITS = 16
 N_PARAMS_B = 4
 LR=0.0001
 N_EPOCHS = 1000
@@ -152,7 +152,7 @@ def Plot_ROC(w,x,y):
 
   # Get data predictions from the XGBoost to compare ROC curves
   xgb_csv =  pd.read_csv(HOME_PATH+'data/test_withxgb.csv')
-  xgb_csv = xgb_csv[xgb_csv['mu_Q'] != 0] # only if using muon dataset include this code
+  # xgb_csv = xgb_csv[xgb_csv['mu_Q'] != 0] # only if using muon dataset include this code
   xgb_pred = xgb_csv['XGB_PRED'] 
   xgb_target = xgb_csv['Jet_LABEL']*2-1
   xgb_fpr,xgb_tpr,xgb_threshold = roc_curve(xgb_target,xgb_pred)
