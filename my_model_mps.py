@@ -200,7 +200,7 @@ def Plot_Loss_and_Acc(ep,loss,acc):
 
 def Run_Model():
   # Loads the dataset (already preprocessed... see dataset.py)
-  train_features,train_target,test_features,test_target = load_dataset(TRAIN_SIZE,TEST_SIZE,SEED, True)
+  train_features,train_target,test_features,test_target = load_dataset(TRAIN_SIZE,TEST_SIZE,SEED)
   z = int(len(train_features) / BATCH_SIZE)
 
   path = HOME_PATH+'mps_w/'
