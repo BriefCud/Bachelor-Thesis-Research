@@ -1,7 +1,7 @@
 # Imports
 import pandas as pd
 import numpy as np
-from dataset16 import load_dataset
+from load_dataset import load_dataset
 from sklearn.metrics import roc_curve, roc_auc_score 
 from sklearn.preprocessing import MinMaxScaler
 import pennylane as qml
