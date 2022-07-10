@@ -1,13 +1,11 @@
 # Imports
+from load_dataset import load_dataset
 import numpy as np
 import pandas as pd
 import os
-from psutil import virtual_memory
 import pennylane as qml
 import matplotlib.pyplot as plt
 from functools import partial
-import jax.tools.colab_tpu
-jax.tools.colab_tpu.setup_tpu()
 import jax
 import jax.numpy as jnp
 import optax
@@ -19,7 +17,7 @@ from sklearn.metrics import roc_curve, roc_auc_score
 SEED=0      
 TRAIN_SIZE = 1000*20 
 TEST_SIZE = 1000*30
-N_QUBITS = 4   
+N_QUBITS = 16 
 LR=0.001 
 N_EPOCHS = 1000
 BATCH_SIZE = 1000
@@ -140,7 +138,7 @@ def Plot_ROC(w,x,y,layer):
 
   # Get data predictions from the XGBoost to compare ROC curves
   xgb_csv =  pd.read_csv(HOME_PATH+'data/test_withxgb.csv')
-  xgb_csv = xgb_csv[xgb_csv['mu_Q'] != 0] # only if using muon dataset include this code
+  # xgb_csv = xgb_csv[xgb_csv['mu_Q'] != 0] # only if using muon dataset include this code
   xgb_pred = xgb_csv['XGB_PRED'] 
   xgb_target = xgb_csv['Jet_LABEL']*2-1
   xgb_fpr,xgb_tpr,xgb_threshold = roc_curve(xgb_target,xgb_pred)
@@ -187,7 +185,7 @@ def Plot_Loss_and_Acc(ep,loss,acc,layer):
   plt.clf()
 
 def Run_Model(train_features,train_target,test_features,test_target,pre_trained="file name"):
-  max_layers = 8
+  max_layers = 7
   z = int(len(train_features)/BATCH_SIZE)
   train_loss_data = np.zeros([max_layers,N_EPOCHS])
   train_acc_data = np.zeros([max_layers,N_EPOCHS])
@@ -228,8 +226,4 @@ def Menu():
     test_loss, test_acc = Test_Model(weights, test_features, test_target)
     Plot_ROC(weights,test_features,test_target, 0)
   else:
-    ram_gb = virtual_memory().total / 1e9
-    if ram_gb > 20:
-      Run_Model(train_features,train_target,test_features,test_target)
-    else:
-      print("not using high-RAM runtime")
+    Run_Model(train_features,train_target,test_features,test_target)
