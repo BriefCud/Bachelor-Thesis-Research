@@ -1,4 +1,5 @@
 # Imports
+from load_dataset import load_dataset
 import numpy as np
 import pandas as pd
 import os
@@ -15,10 +16,10 @@ from sklearn.metrics import roc_curve, roc_auc_score
 
 # ------ Constants ------#
 
-SEED=7      
+SEED=7
 TRAIN_SIZE = 1000*20 
 TEST_SIZE = 1000*30
-N_QUBITS = 4   
+N_QUBITS = 16 
 N_PARAMS_B = 3
 LR=0.001 
 N_EPOCHS = 2000
@@ -139,7 +140,7 @@ def Plot_ROC(w,x,y):
 
   # Get data predictions from the XGBoost to compare ROC curves
   xgb_csv =  pd.read_csv(HOME_PATH+'data/test_withxgb.csv')
-  xgb_csv = xgb_csv[xgb_csv['mu_Q'] != 0] # only if using muon dataset include this code
+  # xgb_csv = xgb_csv[xgb_csv['mu_Q'] != 0] # only if using muon dataset include this code
   xgb_pred = xgb_csv['XGB_PRED'] 
   xgb_target = xgb_csv['Jet_LABEL']*2-1
   xgb_fpr,xgb_tpr,xgb_threshold = roc_curve(xgb_target,xgb_pred)
@@ -188,7 +189,7 @@ def Plot_Loss_and_Acc(ep,loss,acc):
 
 def Run_Model():
   # Loads the dataset (already preprocessed... see dataset.py)
-  train_features,train_target,test_features,test_target = load_dataset(TRAIN_SIZE,TEST_SIZE,SEED,True)
+  train_features,train_target,test_features,test_target = load_dataset(TRAIN_SIZE,TEST_SIZE,SEED)
   z = int(len(train_features) / BATCH_SIZE)
 
   path = HOME_PATH+'ttn_w/'
