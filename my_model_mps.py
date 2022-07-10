@@ -224,6 +224,6 @@ def Run_Model():
     
     d = {'Epochs': ep, 'Train Loss': train_loss, 'Train Accuracy':train_acc}
     frame = pd.DataFrame(d)
-    frame.to_csv(HOME_PATH+'mps_data/mps_loss_accuracy_data.csv', index=False)
+    frame.to_csv(HOME_PATH+'mps_data/mps_loss_accuracy_data_training'+str(TRAIN_SIZE)+'_testing'+str(TEST_SIZE)+'.csv', index=False)
 
 Run_Model()
