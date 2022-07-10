@@ -3,14 +3,12 @@ from load_dataset import load_dataset
 import numpy as np
 import pandas as pd
 import os
-import optax
 import pennylane as qml
 import matplotlib.pyplot as plt
 from functools import partial
-import jax.tools.colab_tpu
-jax.tools.colab_tpu.setup_tpu()
 import jax
 import jax.numpy as jnp
+import optax
 import sklearn
 from sklearn.metrics import roc_curve, roc_auc_score 
 
